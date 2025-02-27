@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reclutamiento</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e9f2f9;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: #0056b3;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        /* Contenedor principal */
+        #login-section, #dashboard-section {
+            max-width: 450px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #dashboard-section {
+            max-width: 800px;
+        }
+
+        /* Títulos */
+        h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            position: relative;
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #007bff;
+        }
+
+        h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+
+        /* Formularios y campos */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group i {
+            position: absolute;
+            top: 37px;
+            left: 12px;
+            color: #007bff;
+        }
+
+        input[type="email"], input[type="password"], input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        input:focus {
+            border-color: #0056b3;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        /* Botones */
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button i {
+            margin-right: 8px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Foto de perfil */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+            margin: 0 auto 15px;
+            display: block;
+            background-color: #f0f8ff;
+        }
+
+        .profile-pic-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ccc;
+            margin: 10px auto;
+            background-color: #f0f8ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Tabla de reclutas */
+        .reclutas-container {
+            margin-top: 30px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: #f5f9ff;
+        }
+
+        .recluta-foto {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        /* Modal para agregar reclutas */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #007bff;
+        }
+
+        /* Acciones en tabla */
+        .action-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s;
+            width: auto;
+        }
+
+        .action-btn:hover {
+            color: #0056b3;
+            background: none;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Selector de color */
+        #color-picker {
+            margin-top: 30px;
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        #color-picker label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #color-picker input[type="color"] {
+            width: 60px;
+            height: 60px;
+            padding: 5px;
+            border: 2px solid #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #color-picker input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            #login-section, #dashboard-section, .modal-content {
+                margin: 15px auto;
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            button {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            .recluta-foto {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>SISTEMA DE GESTIÓN DE RECLUTAS</h1>
+    </header>
+
+    <div class="container">
+        <!-- Sección de inicio de sesión -->
+        <div id="login-section">
+            <h2>Acceso Reclutadores</h2>
+            
+            <div class="profile-section">
+                <img id="login-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
+                <input type="file" id="profile-upload" accept="image/*" style="display: none;">
+                <button type="button" onclick="document.getElementById('profile-upload').click()">
+                    <i class="fas fa-camera"></i> Seleccionar foto
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Ingresa tu correo electrónico">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Ingresa tu contraseña">
+            </div>
+            
+            <button onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+        </div>
+
+        <!-- Sección del dashboard (visible después del inicio de sesión) -->
+        <div id="dashboard-section" style="display:none;">
+            <div class="profile-section">
+                <img id="dashboard-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
+                <h2>Bienvenido, <span id="gerente-name"></span></h2>
+            </div>
+            
+            <h3><i class="fas fa-users"></i> Gestión de Reclutas</h3>
+            
+            <button onclick="openAddReclutaModal()">
+                <i class="fas fa-user-plus"></i> Agregar Nuevo Recluta
+            </button>
+            
+            <div class="reclutas-container">
+                <table id="reclutas-table">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reclutas-list">
+                        <!-- La lista de reclutas se cargará aquí -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Selector de color para personalizar la página -->
+            <div id="color-picker">
+                <label for="page-color">Personalizar interfaz:</label>
+                <input type="color" id="page-color" value="#e9f2f9" onchange="changeBackgroundColor(this.value)">
+            </div>
+
+            <button onclick="logout()" style="margin-top: 20px; background-color: #dc3545;">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- Modal para agregar reclutas -->
+        <div id="add-recluta-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeAddReclutaModal()">&times;</span>
+                <h3>Agregar Nuevo Recluta</h3>
+                
+                <div class="profile-section">
+                    <div id="recluta-pic-preview" class="profile-pic-preview">
+                        <i class="fas fa-user-circle" style="font-size: 48px; color: #ccc;"></i>
+                    </div>
+                    <input type="file" id="recluta-upload" accept="image/*" style="display: none;">
+                    <button type="button" onclick="document.getElementById('recluta-upload').click()">
+                        <i class="fas fa-camera"></i> Seleccionar foto
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-nombre">Nombre completo</label>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="recluta-nombre" placeholder="Nombre y apellidos">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-email">Correo electrónico</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="recluta-email" placeholder="Correo electrónico">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-telefono">Teléfono</label>
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="recluta-telefono" placeholder="Número de teléfono">
+                </div>
+                
+                <button onclick="addRecluta()">
+                    <i class="fas fa-save"></i> Guardar Recluta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.0.0/supabase.min.js"></script>
+    <script>
+        // Inicialización de Supabase
+        const SUPABASE_URL = 'https://jizxkjrdmkylwmssjnws.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppenhranJkbWt5bHdtc3NqbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzNTI1MjgsImV4cCI6MjA1NTkyODUyOH0.FaaBjP3nJE3E0LVsx9VJT2qI0lXbn9uJNQkgNO86IX8';
+        
+        // Esto es solo un mockup para demostración - en producción usarías la librería real de Supabase
+        const supabase = {
+            auth: {
+                signIn: async function(credentials) {
+                    // Simulación de login para demo
+                    if (credentials.email && credentials.password) {
+                        return { 
+                            user: { 
+                                id: '12345', 
+                                email: credentials.email,
+                                profileUrl: document.getElementById('login-profile-pic').src
+                            }, 
+                            error: null 
+                        };
+                    } else {
+                        return { user: null, error: { message: 'Credenciales incorrectas' } };
+                    }
+                },
+                signOut: async function() {
+                    return { error: null };
+                }
+            },
+            from: function(table) {
+                return {
+                    select: function(columns) {
+                        return {
+                            eq: function(field, value) {
+                                // Datos simulados para la demo
+                                return { 
+                                    data: [
+                                        { id: 1, nombre: 'Ana García', email: 'ana@ejemplo.com', telefono: '555-1234', estado: 'Activo', fotoUrl: '/api/placeholder/40/40' },
+                                        { id: 2, nombre: 'Carlos López', email: 'carlos@ejemplo.com', telefono: '555-5678', estado: 'En proceso', fotoUrl: '/api/placeholder/40/40' }
+                                    ], 
+                                    error: null 
+                                };
+                            }
+                        };
+                    },
+                    insert: function(data) {
+                        // Simulación de inserción
+                        return { data: [{ id: Math.floor(Math.random() * 1000), ...data }], error: null };
+                    },
+                    delete: function() {
+                        return {
+                            eq: function(field, value) {
+                                return { error: null };
+                            }
+                        };
+                    }
+                };
+            },
+            storage: {
+                from: function(bucket) {
+                    return {
+                        upload: async function(path, file) {
+                            // Simular subida de archivos
+                            return { data: { path }, error: null };
+                        }
+                    };
+                }
+            }
+        };
+
+        let currentGerente = null;
+        let profileImage = null;
+        let reclutaImage = null;
+
+        // Manejo de la foto de perfil en el login
+        document.getElementById('profile-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('login-profile-pic').src = e.target.result;
+                    profileImage = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Manejo de la foto del recluta
+        document.getElementById('recluta-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.getElementById('recluta-pic-preview');
+                    // Limpiar el div
+                    previewDiv.innerHTML = '';
+                    // Crear imagen
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('profile-pic');
+                    img.style.margin = '0';
+                    previewDiv.appendChild(img);
+                    reclutaImage = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Función de inicio de sesión
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert("Por favor, completa todos los campos");
+                return;
+            }
+            
+            // Simular la carga
+            const loginButton = document.querySelector('#login-section button');
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+            loginButton.disabled = true;
+            
+            // Simulamos una pequeña demora para un efecto más realista
+            setTimeout(async () => {
+                const { user, error } = await supabase.auth.signIn({
+                    email,
+                    password
+                });
+                
+                if (error) {
+                    alert(error.message);
+                    loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                    loginButton.disabled = false;
+                } else {
+                    // Si hay un archivo de imagen, subir a storage
+                    if (profileImage) {
+                        const { data, error } = await supabase.storage
+                            .from('profiles')
+                            .upload(`${user.id}/profile.jpg`, profileImage);
+                            
+                        if (!error) {
+                            user.profileUrl = document.getElementById('login-profile-pic').src;
+                        }
+                    }
+                    
+                    currentGerente = user;
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('dashboard-section').style.display = 'block';
+                    document.getElementById('gerente-name').textContent = user.email.split('@')[0];
+                    document.getElementById('dashboard-profile-pic').src = user.profileUrl;
+                    loadReclutas();
+                }
+            }, 1000);
+        }
+
+        // Cargar reclutas del gerente actual
+        async function loadReclutas() {
+            const { data, error } = await supabase
+                .from('reclutas')
+                .select('*')
+                .eq('gerente_id', currentGerente.id);
+            
+            if (error) {
+                alert(error.message);
+            } else {
+                const reclutasList = document.getElementById('reclutas-list');
+                reclutasList.innerHTML = '';
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="6" style="text-align: center;">No se encontraron reclutas. ¡Agrega tu primer recluta!</td>`;
+                    reclutasList.appendChild(row);
+                } else {
+                    data.forEach(recluta => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${recluta.fotoUrl}" alt="${recluta.nombre}" class="recluta-foto"></td>
+                            <td>${recluta.nombre}</td>
+                            <td>${recluta.email}</td>
+                            <td>${recluta.telefono}</td>
+                            <td><span class="badge ${recluta.estado === 'Activo' ? 'badge-success' : 'badge-warning'}">${recluta.estado}</span></td>
+                            <td>
+                                <button class="action-btn" onclick="editRecluta(${recluta.id})"><i class="fas fa-edit"></i></button>
+                                <button class="action-btn" onclick="deleteRecluta(${recluta.id})"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        `;
+                        reclutasList.appendChild(row);
+                    });
+                }
+            }
+        }
+
+        // Funciones del modal
+        function openAddReclutaModal() {
+            document.getElementById('add-recluta-modal').style.display = 'block';
+            // Limpiar formulario
+            document.getElementById('recluta-nombre').value = '';
+            document.getElementById('recluta-email').value = '';
+            document.getElementById('recluta-telefono').value = '';
+            document.getElementById('recluta-pic-preview').innerHTML = '<i class="fas fa-user-circle" style="font-size: 48px; color: #ccc;"></i>';
+            reclutaImage = null;
+        }
+
+        function closeAddReclutaModal() {
+            document.getElementById('add-recluta-modal').style.display = 'none';
+        }
+
+        // Agregar un nuevo recluta
+        async function addRecluta() {
+            const nombre = document.getElementById('recluta-nombre').value;
+            const email = document.getElementById('recluta-email').value;
+            const telefono = document.getElementById('recluta-telefono').value;
+            
+            if (!nombre || !email || !telefono) {
+                alert("Por favor, completa todos los campos");
+                return;
+            }
+            
+            const saveButton = document.querySelector('#add-recluta-modal button:last-child');
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            saveButton.disabled = true;
+            
+            let fotoUrl = '/api/placeholder/40/40'; // Imagen por defecto
+            
+            if (reclutaImage) {
+                // En una implementación real, subirías la imagen a Supabase Storage
+                const { data, error } = await supabase.storage
+                    .from('reclutas')
+                    .upload(`${currentGerente.id}/${Date.now()}.jpg`, reclutaImage);
+                    
+                if (!error) {
+                    // En una implementación real, obtendrías la URL pública de la imagen
+                    fotoUrl = document.querySelector('#recluta-pic-preview img').src;
+                }
+            }
+            
+            // Simular una pequeña demora
+            setTimeout(async () => {
+                const { data, error } = await supabase
+                    .from('reclutas')
+                    .insert([
+                        { 
+                            gerente_id: currentGerente.id,
+                            nombre,
+                            email,
+                            telefono,
+                            estado: 'En proceso',
+                            fotoUrl
+                        }
+                    ]);
+                
+                if (error) {
+                    alert(error.message);
+                } else {
+                    closeAddReclutaModal();
+                    loadReclutas();
+                }
+                
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Guardar Recluta';
+                saveButton.disabled = false;
+            }, 1000);
+        }
+
+        // Eliminar un recluta
+        async function deleteRecluta(id) {
+            if (confirm('¿Estás seguro de eliminar este recluta?')) {
+                const { error } = await supabase
+                    .from('reclutas')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) {
+                    alert(error.message);
+                } else {
+                    loadReclutas();
+                }
+            }
+        }
+
+        // Editar un recluta (implementación básica para demo)
+        function editRecluta(id) {
+            alert('Función de edición: En una implementación completa, aquí abrirías un modal con los datos del recluta ID: ' + id);
+        }
+
+        // Cerrar sesión
+        async function logout() {
+            await supabase.auth.signOut();
+            currentGerente = null;
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-profile-pic').src = '/api/placeholder/100/100';
+            document.body.style.backgroundColor = "#e9f2f9";
+            document.getElementById('page-color').value = "#e9f2f9";
+        }
+
+        // Cambiar color de fondo
+        function changeBackgroundColor(color) {
+            document.body.style.backgroundColor = color;
+        }
+
+        // Cerrar modal cuando se hace clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('add-recluta-modal');
+            if (event.target === modal) {
+                closeAddReclutaModal();
+            }
+        }
+    </script>
+</body>
+</html>
