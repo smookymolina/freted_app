@@ -50,3 +50,38 @@ async function logout() {
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('dashboard-section').style.display = 'none';
 }
+// Función para mostrar/ocultar el menú desplegable
+function toggleProfileDropdown() {
+    const dropdownMenu = document.getElementById('profile-dropdown-menu');
+    dropdownMenu.classList.toggle('show');
+}
+
+// Cerrar el menú desplegable si el usuario hace clic fuera de él
+window.onclick = function(event) {
+    const modal = document.getElementById('add-recluta-modal');
+    if (event.target === modal) {
+        closeAddReclutaModal();
+    }
+
+    if (!event.target.matches('.profile-pic')) {
+        const dropdowns = document.getElementsByClassName('dropdown-content');
+        for (let i = 0; i < dropdowns.length; i++) {
+            const openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+}
+
+// Función para abrir la configuración de perfil
+function openProfileSettings() {
+    alert('Abrir configuración de perfil');
+    // Aquí puedes abrir un modal o redirigir a otra página para editar el perfil
+}
+
+// Función para abrir la configuración general
+function openConfigurationSettings() {
+    alert('Abrir configuración general');
+    // Aquí puedes abrir un modal o redirigir a otra página para editar la configuración
+}
