@@ -370,13 +370,16 @@
         <div id="login-section">
             <h2>Acceso Reclutadores</h2>
             
-            <div class="profile-section">
-                <img id="login-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
-                <input type="file" id="profile-upload" accept="image/*" style="display: none;">
-                <button type="button" onclick="document.getElementById('profile-upload').click()">
-                    <i class="fas fa-camera"></i> Seleccionar foto
-                </button>
-            </div>
+<div class="profile-section">
+    <div class="profile-dropdown">
+        <img id="dashboard-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil" onclick="toggleProfileDropdown()">
+        <div id="profile-dropdown-menu" class="dropdown-content">
+            <a href="#" onclick="openProfileSettings()">Perfil</a>
+            <a href="#" onclick="openConfigurationSettings()">Configuración</a>
+        </div>
+    </div>
+    <h2>Bienvenido, <span id="gerente-name"></span></h2>
+</div>
             
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
