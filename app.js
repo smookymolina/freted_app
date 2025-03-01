@@ -1,87 +1,127 @@
-const SUPABASE_URL = 'https://jizxkjrdmkylwmssjnws.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppenhranJkbWt5bHdtc3NqbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzNTI1MjgsImV4cCI6MjA1NTkyODUyOH0.FaaBjP3nJE3E0LVsx9VJT2qI0lXbn9uJNQkgNO86IX8';
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #e9f2f9;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Contenedor principal */
+#login-section, #dashboard-section {
+    max-width: 400px;
+    margin: 50px auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
-let currentGerente = null;
+/* Títulos */
+h2 {
+    color: #0056b3;
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-async function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+h3 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-top: 20px;
+}
 
-    const { user, error } = await supabase.auth.signIn({
-        email,
-        password
-    });
+/* Campos de entrada */
+input[type="email"], input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
 
-    if (error) {
-        alert(error.message);
-    } else {
-        currentGerente = user;
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('dashboard-section').style.display = 'block';
-        document.getElementById('gerente-name').textContent = user.email;
-        loadClientes();
+input[type="email"]:focus, input[type="password"]:focus, input[type="file"]:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+
+/* Botones */
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Lista de reclutas */
+#reclutas-list {
+    margin-top: 20px;
+}
+
+#reclutas-list div {
+    padding: 10px;
+    margin-top: 5px;
+    background-color: #f8f9fa;
+    border-left: 5px solid #007bff;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Selector de color */
+#color-picker {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#color-picker label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+#color-picker input[type="color"] {
+    width: 50px;
+    height: 50px;
+    padding: 5px;
+    border: 2px solid #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
     }
-}
 
-async function loadClientes() {
-    const { data, error } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('gerente_id', currentGerente.id);
-
-    if (error) {
-        alert(error.message);
-    } else {
-        const clientesList = document.getElementById('clientes-list');
-        clientesList.innerHTML = '';
-        data.forEach(cliente => {
-            const clienteDiv = document.createElement('div');
-            clienteDiv.textContent = `Nombre: ${cliente.nombre}, Email: ${cliente.email}, Teléfono: ${cliente.telefono}`;
-            clientesList.appendChild(clienteDiv);
-        });
-    }
-}
-
-async function logout() {
-    await supabase.auth.signOut();
-    currentGerente = null;
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('dashboard-section').style.display = 'none';
-}
-// Función para mostrar/ocultar el menú desplegable
-function toggleProfileDropdown() {
-    const dropdownMenu = document.getElementById('profile-dropdown-menu');
-    dropdownMenu.classList.toggle('show');
-}
-
-// Cerrar el menú desplegable si el usuario hace clic fuera de él
-window.onclick = function(event) {
-    const modal = document.getElementById('add-recluta-modal');
-    if (event.target === modal) {
-        closeAddReclutaModal();
+    #login-section, #dashboard-section {
+        margin: 20px auto;
+        padding: 15px;
     }
 
-    if (!event.target.matches('.profile-pic')) {
-        const dropdowns = document.getElementsByClassName('dropdown-content');
-        for (let i = 0; i < dropdowns.length; i++) {
-            const openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
-        }
+    h2 {
+        font-size: 24px;
     }
-}
 
-// Función para abrir la configuración de perfil
-function openProfileSettings() {
-    alert('Abrir configuración de perfil');
-    // Aquí puedes abrir un modal o redirigir a otra página para editar el perfil
-}
+    h3 {
+        font-size: 18px;
+    }
 
-// Función para abrir la configuración general
-function openConfigurationSettings() {
-    alert('Abrir configuración general');
-    // Aquí puedes abrir un modal o redirigir a otra página para editar la configuración
+    button {
+        font-size: 14px;
+    }
 }
