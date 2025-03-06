@@ -176,57 +176,85 @@ async function login() {
         return;
     }
     
-    // Simular la carga
+    // Mostrar estado de carga
     const loginButton = document.querySelector('#login-section button');
     loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
     loginButton.disabled = true;
     
-    // Simulamos una pequeña demora para un efecto más realista
-    setTimeout(async () => {
-        const { user, error } = await supabase.auth.signIn({
+    try {
+        // Usar la autenticación real de Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
         });
         
-        if (error) {
-            alert(error.message);
-            loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
-            loginButton.disabled = false;
-        } else {
-            currentGerente = user;
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('dashboard-section').style.display = 'block';
-            document.getElementById('gerente-name').textContent = user.email.split('@')[0];
-            document.getElementById('dashboard-profile-pic').src = user.profileUrl;
-            loadReclutas();
-        }
-    }, 1000);
+        if (error) throw error;
+        
+        // Obtener datos adicionales del usuario desde la tabla usuarios
+        const { data: userData, error: userError } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+            
+        if (userError) throw userError;
+        
+        currentGerente = {
+            ...data.user,
+            nombre: userData.nombre,
+            profileUrl: userData.foto_url || '/api/placeholder/100/100'
+        };
+        
+        // Actualizar UI
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('dashboard-section').style.display = 'block';
+        document.getElementById('gerente-name').textContent = userData.nombre || data.user.email.split('@')[0];
+        document.getElementById('dashboard-profile-pic').src = currentGerente.profileUrl;
+        
+        // Cargar reclutas
+        loadReclutas();
+        
+    } catch (error) {
+        alert(error.message || "Error al iniciar sesión");
+    } finally {
+        loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+        loginButton.disabled = false;
+    }
 }
 
 async function logout() {
-    await supabase.auth.signOut();
-    currentGerente = null;
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('dashboard-section').style.display = 'none';
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.body.style.backgroundColor = "#e9f2f9";
-    document.getElementById('page-color').value = "#e9f2f9";
-    profileImage = null;
+    try {
+        await supabase.auth.signOut();
+        currentGerente = null;
+        
+        // Restablecer UI
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('dashboard-section').style.display = 'none';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+        document.body.style.backgroundColor = "#e9f2f9";
+        document.getElementById('page-color').value = "#e9f2f9";
+        profileImage = null;
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+    }
 }
 
 // Funciones de gestión de reclutas
 async function loadReclutas() {
-    const { data, error } = await supabase
-        .from('reclutas')
-        .select('*')
-        .eq('gerente_id', currentGerente.id);
-    
-    if (error) {
-        alert(error.message);
-    } else {
+    try {
+        // Consultar reclutas del gerente actual
+        const { data, error } = await supabase
+            .from('reclutas')
+            .select('*')
+            .eq('gerente_id', currentGerente.id)
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
         const reclutasList = document.getElementById('reclutas-list');
         reclutasList.innerHTML = '';
+        
         if (data.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = `<td colspan="6" style="text-align: center;">No se encontraron reclutas. ¡Agrega tu primer recluta!</td>`;
@@ -234,20 +262,24 @@ async function loadReclutas() {
         } else {
             data.forEach(recluta => {
                 const row = document.createElement('tr');
+                const fotoSrc = recluta.foto_url || '/api/placeholder/40/40';
+                
                 row.innerHTML = `
-                    <td><img src="${recluta.fotoUrl}" alt="${recluta.nombre}" class="recluta-foto"></td>
+                    <td><img src="${fotoSrc}" alt="${recluta.nombre}" class="recluta-foto"></td>
                     <td>${recluta.nombre}</td>
                     <td>${recluta.email}</td>
                     <td>${recluta.telefono}</td>
                     <td><span class="badge ${recluta.estado === 'Activo' ? 'badge-success' : 'badge-warning'}">${recluta.estado}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editRecluta(${recluta.id})"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn" onclick="deleteRecluta(${recluta.id})"><i class="fas fa-trash-alt"></i></button>
+                        <button class="action-btn" onclick="editRecluta('${recluta.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn" onclick="deleteRecluta('${recluta.id}')"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 `;
                 reclutasList.appendChild(row);
             });
         }
+    } catch (error) {
+        alert("Error al cargar reclutas: " + error.message);
     }
 }
 
@@ -270,7 +302,7 @@ async function addRecluta() {
     const email = document.getElementById('recluta-email').value;
     const telefono = document.getElementById('recluta-telefono').value;
     
-    if (!email || !nombre || !telefono) {
+    if (!nombre || !email || !telefono) {
         alert("Por favor, completa todos los campos");
         return;
     }
@@ -279,22 +311,31 @@ async function addRecluta() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     saveButton.disabled = true;
     
-    let fotoUrl = '/api/placeholder/40/40'; // Imagen por defecto
-    
-    if (reclutaImage) {
-        // En una implementación real, subirías la imagen a Supabase Storage
-        const { data, error } = await supabase.storage
-            .from('reclutas')
-            .upload(`${currentGerente.id}/${Date.now()}.jpg`, reclutaImage);
+    try {
+        // Determinar la URL de la foto
+        let fotoUrl = null;
+        
+        if (reclutaImage) {
+            // Generar un nombre único para el archivo
+            const fileExtension = reclutaImage.name.split('.').pop();
+            const fileName = `${currentGerente.id}/${Date.now()}.${fileExtension}`;
             
-        if (!error) {
-            // En una implementación real, obtendrías la URL pública de la imagen
-            fotoUrl = document.querySelector('#recluta-pic-preview img').src;
+            // Subir la imagen a Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('recruit_images')
+                .upload(fileName, reclutaImage);
+                
+            if (uploadError) throw uploadError;
+            
+            // Obtener la URL pública de la imagen
+            const { data: { publicUrl } } = supabase.storage
+                .from('recruit_images')
+                .getPublicUrl(fileName);
+                
+            fotoUrl = publicUrl;
         }
-    }
-    
-    // Simular una pequeña demora
-    setTimeout(async () => {
+        
+        // Insertar el nuevo recluta en la base de datos
         const { data, error } = await supabase
             .from('reclutas')
             .insert([
@@ -304,20 +345,22 @@ async function addRecluta() {
                     email,
                     telefono,
                     estado: 'En proceso',
-                    fotoUrl
+                    foto_url: fotoUrl
                 }
             ]);
         
-        if (error) {
-            alert(error.message);
-        } else {
-            closeAddReclutaModal();
-            loadReclutas();
-        }
+        if (error) throw error;
         
+        // Cerrar el modal y recargar la lista
+        closeAddReclutaModal();
+        await loadReclutas();
+        
+    } catch (error) {
+        alert("Error al guardar el recluta: " + error.message);
+    } finally {
         saveButton.innerHTML = '<i class="fas fa-save"></i> Guardar Recluta';
         saveButton.disabled = false;
-    }, 1000);
+    }
 }
 
 async function deleteRecluta(id) {
