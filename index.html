@@ -28,17 +28,8 @@
             background-color: #0056b3;
             color: white;
             padding: 15px 0;
+            text-align: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
         }
 
         header h1 {
@@ -46,15 +37,45 @@
             font-size: 28px;
         }
 
+        /* Contenedor principal */
+        #login-section, #dashboard-section {
+            max-width: 450px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #dashboard-section {
+            max-width: 800px;
+            position: relative;
+        }
+
+        /* Dashboard header with settings */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .profile-section {
+            text-align: center;
+            flex: 1;
+        }
+
         /* Menú desplegable de configuración */
         .settings-dropdown {
             position: relative;
+            margin-left: 15px;
         }
         
         .settings-button {
             background: none;
             border: none;
-            color: white;
+            color: #007bff;
             font-size: 18px;
             cursor: pointer;
             width: auto;
@@ -67,7 +88,7 @@
         }
         
         .settings-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(0, 123, 255, 0.1);
             transform: none;
             box-shadow: none;
         }
@@ -112,21 +133,6 @@
         
         .show {
             display: block;
-        }
-
-        /* Contenedor principal */
-        #login-section, #dashboard-section {
-            max-width: 450px;
-            margin: 30px auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        #dashboard-section {
-            max-width: 800px;
         }
 
         /* Títulos */
@@ -238,11 +244,6 @@
         }
 
         /* Foto de perfil */
-        .profile-section {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
         .profile-pic {
             width: 100px;
             height: 100px;
@@ -403,17 +404,13 @@
                 padding: 10px;
             }
 
-            .header-content {
-                padding: 0 10px;
+            #login-section, #dashboard-section, .modal-content {
+                margin: 15px auto;
+                padding: 20px;
             }
 
             header h1 {
                 font-size: 22px;
-            }
-
-            #login-section, #dashboard-section, .modal-content {
-                margin: 15px auto;
-                padding: 20px;
             }
 
             h2 {
@@ -437,25 +434,25 @@
                 width: 30px;
                 height: 30px;
             }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .settings-dropdown {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
     <header>
-        <div class="header-content">
-            <h1>SISTEMA DE GESTIÓN DE RECLUTAS</h1>
-            <div class="settings-dropdown">
-                <button class="settings-button" id="settings-button">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <div class="dropdown-content" id="settings-dropdown">
-                    <a href="#"><i class="fas fa-wrench"></i> Configuración</a>
-                    <a href="#"><i class="fas fa-lock"></i> Privacidad</a>
-                    <a href="#"><i class="fas fa-sliders-h"></i> Ajustes</a>
-                </div>
-            </div>
-        </div>
+        <h1>SISTEMA DE GESTIÓN DE RECLUTAS</h1>
     </header>
 
     <div class="container">
@@ -482,13 +479,27 @@
 
         <!-- Sección del dashboard (visible después del inicio de sesión) -->
         <div id="dashboard-section" style="display:none;">
-            <div class="profile-section">
-                <img id="dashboard-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
-                <input type="file" id="profile-upload" accept="image/*" style="display: none;">
-                <button type="button" onclick="document.getElementById('profile-upload').click()">
-                    <i class="fas fa-camera"></i> Cambiar foto de perfil
-                </button>
-                <h2>Bienvenido, <span id="gerente-name"></span></h2>
+            <div class="dashboard-header">
+                <div class="profile-section">
+                    <img id="dashboard-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
+                    <input type="file" id="profile-upload" accept="image/*" style="display: none;">
+                    <button type="button" onclick="document.getElementById('profile-upload').click()">
+                        <i class="fas fa-camera"></i> Cambiar foto de perfil
+                    </button>
+                    <h2>Bienvenido, <span id="gerente-name"></span></h2>
+                </div>
+                
+                <!-- Settings dropdown menu -->
+                <div class="settings-dropdown">
+                    <button class="settings-button" id="settings-button">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <div class="dropdown-content" id="settings-dropdown">
+                        <a href="#"><i class="fas fa-wrench"></i> Configuración</a>
+                        <a href="#"><i class="fas fa-lock"></i> Privacidad</a>
+                        <a href="#"><i class="fas fa-sliders-h"></i> Ajustes</a>
+                    </div>
+                </div>
             </div>
             
             <h3><i class="fas fa-users"></i> Gestión de Reclutas</h3>
@@ -848,7 +859,7 @@
                 }
             }
         }
-
+        
         // Editar un recluta (implementación básica para demo)
         function editRecluta(id) {
             alert('Función de edición: En una implementación completa, aquí abrirías un modal con los datos del recluta ID: ' + id);
