@@ -89,12 +89,23 @@ document.addEventListener('DOMContentLoaded', function() {
         settingsButton.addEventListener('click', toggleSettingsDropdown);
     }
 
+    // Agregar listener para el botón de ayuda
+    const helpButton = document.getElementById('help-button');
+    if (helpButton) {
+        helpButton.addEventListener('click', showHelp);
+    }
+
     // Cerrar el menú desplegable cuando se hace clic fuera de él
     window.addEventListener('click', closeDropdownOnClickOutside);
 
     // Cerrar modal cuando se hace clic fuera de él
     window.addEventListener('click', closeModalOnClickOutside);
 });
+
+// Función para mostrar la ayuda
+function showHelp() {
+    alert('Sistema de Gestión de Reclutas\n\nEste sistema te permite:\n- Gestionar perfiles de reclutas\n- Añadir nuevos candidatos\n- Hacer seguimiento del proceso de reclutamiento\n\nPara más información, contacta al administrador del sistema.');
+}
 
 // Manejo de imágenes
 function handleProfileImageChange(event) {
