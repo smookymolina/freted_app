@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Sistema de Reclutamiento</title>
+    <title>Sistema de Reclutamiento</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Estilos generales */
@@ -11,765 +11,889 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f5fa;
+            background-color: #e9f2f9;
             color: #333;
+            transition: background-color 0.3s ease;
         }
 
         .container {
-            display: flex;
-            min-height: 100vh;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background-color: #0c3c6d;
+        /* Header */
+        header {
+            background-color: #0056b3;
             color: white;
-            padding-top: 20px;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            transition: all 0.3s ease;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
 
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        .sidebar-header img {
-            width: 60px;
-            height: 60px;
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        /* Menú desplegable de configuración */
+        .settings-dropdown {
+            position: relative;
+        }
+        
+        .settings-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            width: auto;
+            padding: 8px;
             border-radius: 50%;
-            border: 2px solid white;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            padding: 12px 20px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            border-left: 4px solid transparent;
+            justify-content: center;
         }
-
-        .menu-item:hover, .menu-item.active {
+        
+        .settings-button:hover {
             background-color: rgba(255, 255, 255, 0.1);
-            border-left-color: #4dabf7;
+            transform: none;
+            box-shadow: none;
         }
-
-        .menu-item i {
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            min-width: 200px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            z-index: 100;
+            overflow: hidden;
+            animation: dropdownAppear 0.3s ease;
+        }
+        
+        @keyframes dropdownAppear {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .dropdown-content a i {
             margin-right: 10px;
+            color: #007bff;
             width: 20px;
             text-align: center;
         }
+        
+        .dropdown-content a:hover {
+            background-color: #f5f9ff;
+        }
+        
+        .show {
+            display: block;
+        }
 
-        /* Contenido principal */
-        .main-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 20px;
+        /* Contenedor principal */
+        #login-section, #dashboard-section {
+            max-width: 450px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
 
-        /* Header superior */
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background-color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        #dashboard-section {
+            max-width: 800px;
         }
 
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #333;
-            cursor: pointer;
-        }
-
-        .search-bar {
-            display: flex;
-            align-items: center;
-            background-color: #f5f5f5;
-            border-radius: 50px;
-            padding: 8px 15px;
-            width: 300px;
-        }
-
-        .search-bar input {
-            border: none;
-            background: none;
-            outline: none;
-            flex: 1;
-            padding: 5px;
-            font-size: 14px;
-        }
-
-        .search-bar i {
-            color: #777;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-        }
-
-        .user-menu .notifications {
+        /* Títulos */
+        h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
             position: relative;
-            margin-right: 20px;
-            cursor: pointer;
         }
 
-        .user-menu .notifications .badge {
+        h2:after {
+            content: '';
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: #e74c3c;
-            color: white;
-            font-size: 10px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .user-menu .user-info {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .user-menu .user-info img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-        }
-
-        /* Tarjetas de resumen */
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .summary-card {
-            display: flex;
-            align-items: center;
-        }
-
-        .card-icon {
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 24px;
+            height: 3px;
+            background-color: #007bff;
         }
 
-        .card-icon.blue {
-            background-color: rgba(0, 123, 255, 0.1);
+        h3 {
             color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-top: 25px;
+            font-weight: 500;
         }
 
-        .card-icon.green {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .card-icon.orange {
-            background-color: rgba(255, 153, 0, 0.1);
-            color: #ff9900;
-        }
-
-        .card-icon.red {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-
-        .card-info h3 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .card-info p {
-            margin: 5px 0 0;
-            color: #777;
-            font-size: 14px;
-        }
-
-        /* Gráficos y tablas */
-        .charts-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-card, .activity-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .chart-card h3, .activity-card h3, .managers-card h3 {
-            margin-top: 0;
+        /* Formularios y campos */
+        .form-group {
             margin-bottom: 20px;
-            color: #333;
-            font-weight: 600;
-            font-size: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chart-container {
-            height: 300px;
             position: relative;
         }
 
-        /* Placeholder para gráfico */
-        .chart-placeholder {
-            width: 100%;
-            height: 100%;
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #777;
-        }
-
-        /* Lista de actividad reciente */
-        .activity-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .activity-item {
-            display: flex;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f1f1f1;
-        }
-
-        .activity-item:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-content h4 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .activity-content p {
-            margin: 5px 0 0;
-            color: #777;
-            font-size: 13px;
-        }
-
-        .activity-time {
-            color: #aaa;
-            font-size: 12px;
-        }
-
-        /* Tabla de gerentes */
-        .managers-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-        }
-
-        .managers-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .managers-table th, .managers-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #f1f1f1;
-        }
-
-        .managers-table th {
-            font-weight: 600;
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
             color: #555;
-            font-size: 14px;
-        }
-
-        .managers-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .manager-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .manager-info img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-        }
-
-        .manager-name {
             font-weight: 500;
         }
 
-        .manager-email {
-            color: #777;
-            font-size: 13px;
-        }
-
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-badge.active {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .status-badge.inactive {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-
-        .actions-cell {
-            text-align: right;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            color: #777;
-            cursor: pointer;
-            transition: color 0.3s;
-            font-size: 14px;
-            padding: 5px;
-            margin-left: 5px;
-        }
-
-        .action-btn:hover {
+        .form-group i {
+            position: absolute;
+            top: 37px;
+            left: 12px;
             color: #007bff;
         }
 
-        .add-manager-btn {
+        input[type="email"], input[type="password"], input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        input:focus {
+            border-color: #0056b3;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        /* Botones */
+        button {
+            width: 100%;
+            padding: 12px;
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 6px 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            transition: background-color 0.3s;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
             display: flex;
+            justify-content: center;
             align-items: center;
         }
 
-        .add-manager-btn i {
-            margin-right: 5px;
+        button i {
+            margin-right: 8px;
         }
 
-        .add-manager-btn:hover {
+        button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Responsive */
-        @media (max-width: 992px) {
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
+        button:active {
+            transform: translateY(0);
         }
 
+        /* Foto de perfil */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+            margin: 0 auto 15px;
+            display: block;
+            background-color: #f0f8ff;
+        }
+
+        .profile-pic-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ccc;
+            margin: 10px auto;
+            background-color: #f0f8ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Tabla de reclutas */
+        .reclutas-container {
+            margin-top: 30px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: #f5f9ff;
+        }
+
+        .recluta-foto {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+
+        /* Modal para agregar reclutas */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #007bff;
+        }
+
+        /* Acciones en tabla */
+        .action-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s;
+            width: auto;
+        }
+
+        .action-btn:hover {
+            color: #0056b3;
+            background: none;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Selector de color */
+        #color-picker {
+            margin-top: 30px;
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        #color-picker label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #color-picker input[type="color"] {
+            width: 60px;
+            height: 60px;
+            padding: 5px;
+            border: 2px solid #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #color-picker input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive design */
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-250px);
+            .container {
+                padding: 10px;
             }
-            
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .search-bar {
-                width: 200px;
-            }
-            
-            .summary-cards {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            }
-        }
 
-        @media (max-width: 576px) {
-            .summary-cards {
-                grid-template-columns: 1fr;
+            .header-content {
+                padding: 0 10px;
             }
-            
-            .search-bar {
-                display: none;
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            #login-section, #dashboard-section, .modal-content {
+                margin: 15px auto;
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            button {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            .recluta-foto {
+                width: 30px;
+                height: 30px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar de navegación -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <img src="/api/placeholder/60/60" alt="Admin Logo">
-                <h3>Admin Panel</h3>
-            </div>
-            
-            <div class="sidebar-menu">
-                <div class="menu-item active">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </div>
-                <div class="menu-item">
-                    <i class="fas fa-users"></i>
-                    <span>Gerentes</span>
-                </div>
-                <div class="menu-item">
-                    <i class="fas fa-user-tie"></i>
-                    <span>Reclutas</span>
-                </div>
-                <div class="menu-item">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reportes</span>
-                </div>
-                <div class="menu-item">
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <h1>SISTEMA DE GESTIÓN DE RECLUTAS</h1>
+            <div class="settings-dropdown">
+                <button class="settings-button" id="settings-button">
                     <i class="fas fa-cog"></i>
-                    <span>Configuración</span>
-                </div>
-                <div class="menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Cerrar Sesión</span>
+                </button>
+                <div class="dropdown-content" id="settings-dropdown">
+                    <a href="#"><i class="fas fa-wrench"></i> Configuración</a>
+                    <a href="#"><i class="fas fa-lock"></i> Privacidad</a>
+                    <a href="#"><i class="fas fa-sliders-h"></i> Ajustes</a>
                 </div>
             </div>
         </div>
+    </header>
 
-        <!-- Contenido principal -->
-        <div class="main-content" id="main-content">
-            <!-- Header superior -->
-            <div class="top-header">
-                <button class="menu-toggle" id="menu-toggle">
-                    <i class="fas fa-bars"></i>
+    <div class="container">
+        <!-- Sección de inicio de sesión -->
+        <div id="login-section">
+            <h2>Acceso Reclutadores</h2>
+            
+            <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Ingresa tu correo electrónico">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Ingresa tu contraseña">
+            </div>
+            
+            <button type="submit" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+        </div>
+
+        <!-- Sección del dashboard (visible después del inicio de sesión) -->
+        <div id="dashboard-section" style="display:none;">
+            <div class="profile-section">
+                <img id="dashboard-profile-pic" class="profile-pic" src="/api/placeholder/100/100" alt="Foto de perfil">
+                <input type="file" id="profile-upload" accept="image/*" style="display: none;">
+                <button type="button" onclick="document.getElementById('profile-upload').click()">
+                    <i class="fas fa-camera"></i> Cambiar foto de perfil
                 </button>
-                
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Buscar...">
-                </div>
-                
-                <div class="user-menu">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    
-                    <div class="user-info">
-                        <img src="/api/placeholder/40/40" alt="Admin">
-                        <span>Administrador</span>
-                    </div>
-                </div>
+                <h2>Bienvenido, <span id="gerente-name"></span></h2>
             </div>
-
-            <!-- Tarjetas de resumen -->
-            <div class="summary-cards">
-                <div class="card summary-card">
-                    <div class="card-icon blue">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>42</h3>
-                        <p>Total Gerentes</p>
-                    </div>
-                </div>
-                
-                <div class="card summary-card">
-                    <div class="card-icon green">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>218</h3>
-                        <p>Total Reclutas</p>
-                    </div>
-                </div>
-                
-                <div class="card summary-card">
-                    <div class="card-icon orange">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>65</h3>
-                        <p>Reclutas Activos</p>
-                    </div>
-                </div>
-                
-                <div class="card summary-card">
-                    <div class="card-icon red">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>24</h3>
-                        <p>Acciones Pendientes</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gráficos y actividad reciente -->
-            <div class="charts-container">
-                <div class="chart-card">
-                    <h3>
-                        Tendencia de Reclutamiento
-                        <select style="font-size: 14px; padding: 5px; border-radius: 5px; border: 1px solid #ddd;">
-                            <option>Últimos 7 días</option>
-                            <option>Últimos 30 días</option>
-                            <option>Últimos 90 días</option>
-                        </select>
-                    </h3>
-                    <div class="chart-container">
-                        <div class="chart-placeholder">
-                            [Gráfico de tendencia de reclutamiento]
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="activity-card">
-                    <h3>Actividad Reciente</h3>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background-color: rgba(0, 123, 255, 0.1); color: #007bff;">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Nuevo Gerente Registrado</h4>
-                                <p>Laura Martínez se ha unido como gerente de reclutamiento.</p>
-                                <span class="activity-time">Hace 35 minutos</span>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Recluta Aprobado</h4>
-                                <p>Carlos López ha sido aceptado por Recursos Humanos.</p>
-                                <span class="activity-time">Hace 2 horas</span>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background-color: rgba(255, 153, 0, 0.1); color: #ff9900;">
-                                <i class="fas fa-edit"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Perfil Actualizado</h4>
-                                <p>Miguel Sánchez actualizó el perfil de Ana García.</p>
-                                <span class="activity-time">Hace 5 horas</span>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Recluta Eliminado</h4>
-                                <p>Pedro Gómez ha eliminado a un recluta del sistema.</p>
-                                <span class="activity-time">Hace 1 día</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabla de gerentes -->
-            <div class="managers-card">
-                <h3>
-                    Gerentes Recientes
-                    <button class="add-manager-btn">
-                        <i class="fas fa-plus"></i> Agregar Gerente
-                    </button>
-                </h3>
-                
-                <table class="managers-table">
+            
+            <h3><i class="fas fa-users"></i> Gestión de Reclutas</h3>
+            
+            <button onclick="openAddReclutaModal()">
+                <i class="fas fa-user-plus"></i> Agregar Nuevo Recluta
+            </button>
+            
+            <div class="reclutas-container">
+                <table id="reclutas-table">
                     <thead>
                         <tr>
-                            <th>Gerente</th>
-                            <th>Reclutas</th>
-                            <th>Último acceso</th>
+                            <th>Foto</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="manager-info">
-                                    <img src="/api/placeholder/36/36" alt="Miguel Sánchez">
-                                    <div>
-                                        <div class="manager-name">Miguel Sánchez</div>
-                                        <div class="manager-email">miguel@empresa.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>28</td>
-                            <td>Hoy, 10:30 AM</td>
-                            <td><span class="status-badge active">Activo</span></td>
-                            <td class="actions-cell">
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <td>
-                                <div class="manager-info">
-                                    <img src="/api/placeholder/36/36" alt="Laura Martínez">
-                                    <div>
-                                        <div class="manager-name">Laura Martínez</div>
-                                        <div class="manager-email">laura@empresa.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>15</td>
-                            <td>Hoy, 9:15 AM</td>
-                            <td><span class="status-badge active">Activo</span></td>
-                            <td class="actions-cell">
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <td>
-                                <div class="manager-info">
-                                    <img src="/api/placeholder/36/36" alt="Pedro Gómez">
-                                    <div>
-                                        <div class="manager-name">Pedro Gómez</div>
-                                        <div class="manager-email">pedro@empresa.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>32</td>
-                            <td>Ayer, 3:45 PM</td>
-                            <td><span class="status-badge active">Activo</span></td>
-                            <td class="actions-cell">
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <td>
-                                <div class="manager-info">
-                                    <img src="/api/placeholder/36/36" alt="Ana Rodríguez">
-                                    <div>
-                                        <div class="manager-name">Ana Rodríguez</div>
-                                        <div class="manager-email">ana@empresa.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>19</td>
-                            <td>Hace 3 días</td>
-                            <td><span class="status-badge inactive">Inactivo</span></td>
-                            <td class="actions-cell">
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-trash-alt"></i></button>
-                            </td>
-                        </tr>
+                    <tbody id="reclutas-list">
+                        <!-- La lista de reclutas se cargará aquí -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Selector de color para personalizar la página -->
+            <div id="color-picker">
+                <label for="page-color">Personalizar interfaz:</label>
+                <input type="color" id="page-color" value="#e9f2f9" onchange="changeBackgroundColor(this.value)">
+            </div>
+
+            <button onclick="logout()" style="margin-top: 20px; background-color: #dc3545;">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- Modal para agregar reclutas -->
+        <div id="add-recluta-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeAddReclutaModal()">&times;</span>
+                <h3>Agregar Nuevo Recluta</h3>
+                
+                <div class="profile-section">
+                    <div id="recluta-pic-preview" class="profile-pic-preview">
+                        <i class="fas fa-user-circle" style="font-size: 48px; color: #ccc;"></i>
+                    </div>
+                    <input type="file" id="recluta-upload" accept="image/*" style="display: none;">
+                    <button type="button" onclick="document.getElementById('recluta-upload').click()">
+                        <i class="fas fa-camera"></i> Seleccionar foto
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-nombre">Nombre completo</label>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="recluta-nombre" placeholder="Nombre y apellidos">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-email">Correo electrónico</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="recluta-email" placeholder="Correo electrónico">
+                </div>
+                
+                <div class="form-group">
+                    <label for="recluta-telefono">Teléfono</label>
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="recluta-telefono" placeholder="Número de teléfono">
+                </div>
+                
+                <button onclick="addRecluta()">
+                    <i class="fas fa-save"></i> Guardar Recluta
+                </button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.0.0/supabase.min.js"></script>
     <script>
-        // Toggle sidebar
-        document.getElementById('menu-toggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
+        // Inicialización de Supabase
+        const SUPABASE_URL = 'https://jizxkjrdmkylwmssjnws.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppenhranJkbWt5bHdtc3NqbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAzNTI1MjgsImV4cCI6MjA1NTkyODUyOH0.FaaBjP3nJE3E0LVsx9VJT2qI0lXbn9uJNQkgNO86IX8';
+        
+        // Esto es solo un mockup para demostración - en producción usarías la librería real de Supabase
+        const supabase = {
+            auth: {
+                signIn: async function(credentials) {
+                    // Simulación de login para demo
+                    if (credentials.email && credentials.password) {
+                        return { 
+                            user: { 
+                                id: '12345', 
+                                email: credentials.email,
+                                profileUrl: '/api/placeholder/100/100' // Ahora usamos una imagen predeterminada
+                            }, 
+                            error: null 
+                        };
+                    } else {
+                        return { user: null, error: { message: 'Credenciales incorrectas' } };
+                    }
+                },
+                signOut: async function() {
+                    return { error: null };
+                }
+            },
+            from: function(table) {
+                return {
+                    select: function(columns) {
+                        return {
+                            eq: function(field, value) {
+                                // Datos simulados para la demo
+                                return { 
+                                    data: [
+                                        { id: 1, nombre: 'Ana García', email: 'ana@ejemplo.com', telefono: '555-1234', estado: 'Activo', fotoUrl: '/api/placeholder/40/40' },
+                                        { id: 2, nombre: 'Carlos López', email: 'carlos@ejemplo.com', telefono: '555-5678', estado: 'En proceso', fotoUrl: '/api/placeholder/40/40' }
+                                    ], 
+                                    error: null 
+                                };
+                            }
+                        };
+                    },
+                    insert: function(data) {
+                        // Simulación de inserción
+                        return { data: [{ id: Math.floor(Math.random() * 1000), ...data }], error: null };
+                    },
+                    delete: function() {
+                        return {
+                            eq: function(field, value) {
+                                return { error: null };
+                            }
+                        };
+                    }
+                };
+            },
+            storage: {
+                from: function(bucket) {
+                    return {
+                        upload: async function(path, file) {
+                            // Simular subida de archivos
+                            return { data: { path }, error: null };
+                        }
+                    };
+                }
+            }
+        };
+
+        let currentGerente = null;
+        let profileImage = null;
+        let reclutaImage = null;
+
+        // Manejo de la foto de perfil en el dashboard (después del login)
+        document.getElementById('profile-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('dashboard-profile-pic').src = e.target.result;
+                    profileImage = file;
+                    
+                    // Actualizar la imagen de perfil en el objeto currentGerente
+                    if (currentGerente) {
+                        currentGerente.profileUrl = e.target.result;
+                        
+                        // En una implementación real, aquí subirías la imagen al servidor
+                        supabase.storage
+                            .from('profiles')
+                            .upload(`${currentGerente.id}/profile.jpg`, file)
+                            .then(({ data, error }) => {
+                                if (error) {
+                                    console.error('Error al subir la imagen:', error);
+                                }
+                            });
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Manejo de la foto del recluta
+        document.getElementById('recluta-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.getElementById('recluta-pic-preview');
+                    // Limpiar el div
+                    previewDiv.innerHTML = '';
+                    // Crear imagen
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('profile-pic');
+                    img.style.margin = '0';
+                    previewDiv.appendChild(img);
+                    reclutaImage = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Función de inicio de sesión
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert("Por favor, completa todos los campos");
+                return;
+            }
+            
+            // Simular la carga
+            const loginButton = document.querySelector('#login-section button');
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+            loginButton.disabled = true;
+            
+            // Simulamos una pequeña demora para un efecto más realista
+            setTimeout(async () => {
+                const { user, error } = await supabase.auth.signIn({
+                    email,
+                    password
+                });
+                
+                if (error) {
+                    alert(error.message);
+                    loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                    loginButton.disabled = false;
+                } else {
+                    currentGerente = user;
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('dashboard-section').style.display = 'block';
+                    document.getElementById('gerente-name').textContent = user.email.split('@')[0];
+                    document.getElementById('dashboard-profile-pic').src = user.profileUrl;
+                    loadReclutas();
+                }
+            }, 1000);
+        }
+
+        // Cargar reclutas del gerente actual
+        async function loadReclutas() {
+            const { data, error } = await supabase
+                .from('reclutas')
+                .select('*')
+                .eq('gerente_id', currentGerente.id);
+            
+            if (error) {
+                alert(error.message);
+            } else {
+                const reclutasList = document.getElementById('reclutas-list');
+                reclutasList.innerHTML = '';
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="6" style="text-align: center;">No se encontraron reclutas. ¡Agrega tu primer recluta!</td>`;
+                    reclutasList.appendChild(row);
+                } else {
+                    data.forEach(recluta => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${recluta.fotoUrl}" alt="${recluta.nombre}" class="recluta-foto"></td>
+                            <td>${recluta.nombre}</td>
+                            <td>${recluta.email}</td>
+                            <td>${recluta.telefono}</td>
+                            <td><span class="badge ${recluta.estado === 'Activo' ? 'badge-success' : 'badge-warning'}">${recluta.estado}</span></td>
+                            <td>
+                                <button class="action-btn" onclick="editRecluta(${recluta.id})"><i class="fas fa-edit"></i></button>
+                                <button class="action-btn" onclick="deleteRecluta(${recluta.id})"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        `;
+                        reclutasList.appendChild(row);
+                    });
+                }
+            }
+        }
+
+        // Funciones del modal
+        function openAddReclutaModal() {
+            document.getElementById('add-recluta-modal').style.display = 'block';
+            // Limpiar formulario
+            document.getElementById('recluta-nombre').value = '';
+            document.getElementById('recluta-email').value = '';
+            document.getElementById('recluta-telefono').value = '';
+            document.getElementById('recluta-pic-preview').innerHTML = '<i class="fas fa-user-circle" style="font-size: 48px; color: #ccc;"></i>';
+            reclutaImage = null;
+        }
+
+        function closeAddReclutaModal() {
+            document.getElementById('add-recluta-modal').style.display = 'none';
+        }
+
+        // Agregar un nuevo recluta
+        async function addRecluta() {
+            const nombre = document.getElementById('recluta-nombre').value;
+            const email = document.getElementById('recluta-email').value;
+            const telefono = document.getElementById('recluta-telefono').value;
+            
+            if (!nombre || !email || !telefono) {
+                alert("Por favor, completa todos los campos");
+                return;
+            }
+            
+            const saveButton = document.querySelector('#add-recluta-modal button:last-child');
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            saveButton.disabled = true;
+            
+            let fotoUrl = '/api/placeholder/40/40'; // Imagen por defecto
+            
+            if (reclutaImage) {
+                // En una implementación real, subirías la imagen a Supabase Storage
+                const { data, error } = await supabase.storage
+                    .from('reclutas')
+                    .upload(`${currentGerente.id}/${Date.now()}.jpg`, reclutaImage);
+                    
+                if (!error) {
+                    // En una implementación real, obtendrías la URL pública de la imagen
+                    fotoUrl = document.querySelector('#recluta-pic-preview img').src;
+                }
+            }
+            
+            // Simular una pequeña demora
+            setTimeout(async () => {
+                const { data, error } = await supabase
+                    .from('reclutas')
+                    .insert([
+                        { 
+                            gerente_id: currentGerente.id,
+                            nombre,
+                            email,
+                            telefono,
+                            estado: 'En proceso',
+                            fotoUrl
+                        }
+                    ]);
+                
+                if (error) {
+                    alert(error.message);
+                } else {
+                    closeAddReclutaModal();
+                    loadReclutas();
+                }
+                
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Guardar Recluta';
+                saveButton.disabled = false;
+            }, 1000);
+        }
+
+        // Eliminar un recluta
+        async function deleteRecluta(id) {
+            if (confirm('¿Estás seguro de eliminar este recluta?')) {
+                const { error } = await supabase
+                    .from('reclutas')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) {
+                    alert(error.message);
+                } else {
+                    loadReclutas();
+                }
+            }
+        }
+
+        // Editar un recluta (implementación básica para demo)
+        function editRecluta(id) {
+            alert('Función de edición: En una implementación completa, aquí abrirías un modal con los datos del recluta ID: ' + id);
+        }
+
+        // Cerrar sesión
+        async function logout() {
+            await supabase.auth.signOut();
+            currentGerente = null;
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.body.style.backgroundColor = "#e9f2f9";
+            document.getElementById('page-color').value = "#e9f2f9";
+            profileImage = null;
+        }
+
+        // Cambiar color de fondo
+        function changeBackgroundColor(color) {
+            document.body.style.backgroundColor = color;
+        }
+
+        // Cerrar modal cuando se hace clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('add-recluta-modal');
+            if (event.target === modal) {
+                closeAddReclutaModal();
+            }
+        }
+
+        // Funcionalidad para el menú desplegable
+        document.getElementById('settings-button').addEventListener('click', function(event) {
+            document.getElementById('settings-dropdown').classList.toggle('show');
+            event.stopPropagation();
         });
         
-        // Hacer que los elementos del menú sean clickeables
-        const menuItems = document.querySelectorAll('.menu-item');
-        menuItems.forEach(item => {
-            item.addEventListener('click', function() {
-                menuItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
+        // Cerrar el menú desplegable cuando se hace clic fuera de él
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.settings-button') && !event.target.matches('.settings-button *')) {
+                const dropdown = document.getElementById('settings-dropdown');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
         });
     </script>
 </body>
