@@ -1,40 +1,21 @@
 // app.js - Script principal actualizado con integración real de Supabase
 
-// Variables globales
-let supabase = null;
+// Inicialización de Supabase - Usamos el cliente importado desde supabase-client.js
+let supabase;
 let currentGerente = null;
 let profileImage = null;
 let reclutaImage = null;
 
 // Inicializar cuando el DOM esté cargado
-document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar Supabase directamente (sin usar módulos)
-    const SUPABASE_URL = 'https://ennikrxyqkafmoflgpam.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubmlrcnh5cWthZm1vZmxncGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzMDE5NjEsImV4cCI6MjA1Njg3Nzk2MX0.yKYRFduvVkm2NkYg7SkCovrF6qSLbUXiKzxTAjU0oyI';
-
-    // Verificar si la biblioteca de Supabase está disponible
-    if (typeof supabaseJs !== 'undefined') {
-        // Si se carga como supabaseJs (nombre global)
-        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } else if (typeof window.supabase !== 'undefined') {
-        // Si ya existe un cliente supabase en window
-        supabase = window.supabase;
-    } else if (typeof window.createClient !== 'undefined') {
-        // En algunas versiones de CDN
-        supabase = window.createClient(SUPABASE_URL, SUPABASE_KEY);
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si estamos usando el cliente modular o necesitamos inicializarlo directamente
+    if (!window.supabase) {
+        const SUPABASE_URL = 'https://ennikrxyqkafmoflgpam.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubmlrcnh5cWthZm1vZmxncGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzMDE5NjEsImV4cCI6MjA1Njg3Nzk2MX0.yKYRFduvVkm2NkYg7SkCovrF6qSLbUXiKzxTAjU0oyI';
+        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     } else {
-        // Fallback a una implementación simulada (la que ya teníamos)
-        console.warn("No se pudo inicializar Supabase. Usando implementación simulada.");
-        initMockSupabase();
+        supabase = window.supabase;
     }
-
-    // Verificar si Supabase se inicializó correctamente
-    if (!supabase) {
-        console.error("Error: No se pudo inicializar Supabase.");
-        return;
-    }
-
-    console.log("Supabase inicializado correctamente:", supabase);
 
     // Verificar si hay una sesión activa
     checkSession();
@@ -47,34 +28,34 @@ document.addEventListener('DOMContentLoaded', function () {
 async function checkSession() {
     try {
         const { data, error } = await supabase.auth.getSession();
-
+        
         if (error) {
             console.error('Error al verificar sesión:', error.message);
             return;
         }
-
+        
         if (data.session) {
             // Si hay una sesión, obtener el usuario actual
             const { data: userData, error: userError } = await supabase.auth.getUser();
-
+            
             if (userError) {
                 console.error('Error al obtener usuario:', userError.message);
                 return;
             }
-
+            
             if (userData.user) {
                 currentGerente = userData.user;
-
+                
                 // Mostrar el panel de control y configurar la UI
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('dashboard-section').style.display = 'block';
                 document.getElementById('gerente-name').textContent = userData.user.email.split('@')[0];
-
+                
                 // Mostrar avatar si existe
                 if (userData.user.user_metadata && userData.user.user_metadata.avatar_url) {
                     document.getElementById('dashboard-profile-pic').src = userData.user.user_metadata.avatar_url;
                 }
-
+                
                 // Cargar los reclutas
                 loadReclutas();
             }
@@ -95,21 +76,21 @@ function setupEventListeners() {
     if (profileUploadButton) {
         profileUploadButton.disabled = true;
         document.querySelector('#login-section button[type="button"]').disabled = true;
-
+        
         // Manejo de la foto de perfil en el login
         profileUploadButton.addEventListener('change', handleProfileImageChange);
     }
-
+    
     // Manejo de la foto del recluta
     const reclutaUploadButton = document.getElementById('recluta-upload');
     if (reclutaUploadButton) {
         reclutaUploadButton.addEventListener('change', handleReclutaImageChange);
     }
-
+    
     // Cambio de color de fondo
     const colorPicker = document.getElementById('page-color');
     if (colorPicker) {
-        colorPicker.addEventListener('change', function () {
+        colorPicker.addEventListener('change', function() {
             changeBackgroundColor(this.value);
         });
     }
@@ -120,7 +101,7 @@ function handleProfileImageChange(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = function(e) {
             document.getElementById('login-profile-pic').src = e.target.result;
             profileImage = file;
         };
@@ -133,7 +114,7 @@ function handleReclutaImageChange(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = function(e) {
             const previewDiv = document.getElementById('recluta-pic-preview');
             // Limpiar el div
             previewDiv.innerHTML = '';
@@ -157,44 +138,44 @@ function handleReclutaImageChange(event) {
 async function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-
+    
     if (!email || !password) {
         alert("Por favor, completa todos los campos");
         return;
     }
-
+    
     // Mostrar indicador de carga
     const loginButton = document.querySelector('#login-section button[type="submit"]');
     loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
     loginButton.disabled = true;
-
+    
     try {
         // Iniciar sesión con Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
         });
-
+        
         if (error) {
             throw error;
         }
-
+        
         // Habilitar el botón de selección de foto de perfil después del inicio de sesión
         document.getElementById('profile-upload').disabled = false;
         document.querySelector('#login-section button[type="button"]').disabled = false;
-
+        
         // Si hay un archivo de imagen, subir a storage
         if (profileImage) {
             const fileName = `profile_${Date.now()}.jpg`;
             const filePath = `${data.user.id}/${fileName}`;
-
+            
             const { data: fileData, error: uploadError } = await supabase.storage
                 .from('profiles')
                 .upload(filePath, profileImage, {
                     cacheControl: '3600',
                     upsert: true
                 });
-
+            
             if (uploadError) {
                 console.error('Error al subir imagen de perfil:', uploadError);
             } else {
@@ -202,33 +183,33 @@ async function login() {
                 const { data: publicUrlData } = supabase.storage
                     .from('profiles')
                     .getPublicUrl(filePath);
-
+                
                 // Actualizar los metadatos del usuario con la URL del avatar
                 await supabase.auth.updateUser({
                     data: { avatar_url: publicUrlData.publicUrl }
                 });
-
+                
                 // Actualizar la variable del usuario actual
-                data.user.user_metadata = {
-                    ...data.user.user_metadata,
-                    avatar_url: publicUrlData.publicUrl
+                data.user.user_metadata = { 
+                    ...data.user.user_metadata, 
+                    avatar_url: publicUrlData.publicUrl 
                 };
             }
         }
-
+        
         currentGerente = data.user;
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('dashboard-section').style.display = 'block';
         document.getElementById('gerente-name').textContent = data.user.email.split('@')[0];
-
+        
         // Mostrar avatar si existe
         if (data.user.user_metadata && data.user.user_metadata.avatar_url) {
             document.getElementById('dashboard-profile-pic').src = data.user.user_metadata.avatar_url;
         }
-
+        
         // Cargar reclutas
         loadReclutas();
-
+        
     } catch (error) {
         alert(error.message || 'Error al iniciar sesión');
         console.error('Error al iniciar sesión:', error);
@@ -241,20 +222,20 @@ async function login() {
 // Cargar reclutas del gerente actual
 async function loadReclutas() {
     if (!currentGerente) return;
-
+    
     try {
         const { data, error } = await supabase
             .from('reclutas')
             .select('*')
             .eq('gerente_id', currentGerente.id);
-
+        
         if (error) {
             throw error;
         }
-
+        
         const reclutasList = document.getElementById('reclutas-list');
         reclutasList.innerHTML = '';
-
+        
         if (!data || data.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = `<td colspan="6" style="text-align: center; padding: 15px;">No se encontraron reclutas. ¡Agrega tu primer recluta!</td>`;
@@ -263,7 +244,7 @@ async function loadReclutas() {
             data.forEach(recluta => {
                 const row = document.createElement('tr');
                 row.style.borderBottom = '1px solid #dee2e6';
-
+                
                 row.innerHTML = `
                     <td style="padding: 8px;">
                         <img src="${recluta.fotoUrl || '/api/placeholder/40/40'}" 
@@ -320,16 +301,16 @@ async function addRecluta() {
     const nombre = document.getElementById('recluta-nombre').value;
     const email = document.getElementById('recluta-email').value;
     const telefono = document.getElementById('recluta-telefono').value;
-
+    
     if (!nombre || !email || !telefono) {
         alert("Por favor, completa todos los campos");
         return;
     }
-
+    
     const saveButton = document.querySelector('#add-recluta-modal button:last-child');
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     saveButton.disabled = true;
-
+    
     try {
         // Datos básicos del recluta
         const reclutaData = {
@@ -340,19 +321,19 @@ async function addRecluta() {
             estado: 'En proceso',
             fotoUrl: '/api/placeholder/40/40' // URL por defecto
         };
-
+        
         // Si hay una imagen de perfil, subirla primero
         if (reclutaImage) {
             const fileName = `recluta_${Date.now()}.jpg`;
             const filePath = `${currentGerente.id}/${fileName}`;
-
+            
             const { data: fileData, error: uploadError } = await supabase.storage
                 .from('reclutas')
                 .upload(filePath, reclutaImage, {
                     cacheControl: '3600',
                     upsert: true
                 });
-
+            
             if (uploadError) {
                 console.error('Error al subir imagen del recluta:', uploadError);
             } else {
@@ -360,26 +341,26 @@ async function addRecluta() {
                 const { data: publicUrlData } = supabase.storage
                     .from('reclutas')
                     .getPublicUrl(filePath);
-
+                
                 // Actualizar la URL de la foto en los datos del recluta
                 reclutaData.fotoUrl = publicUrlData.publicUrl;
             }
         }
-
+        
         // Guardar el recluta en la base de datos
         const { data, error } = await supabase
             .from('reclutas')
             .insert([reclutaData])
             .select();
-
+        
         if (error) {
             throw error;
         }
-
+        
         // Cerrar el modal y recargar la lista de reclutas
         closeAddReclutaModal();
         loadReclutas();
-
+        
     } catch (error) {
         console.error('Error al crear recluta:', error);
         alert('Error al crear recluta: ' + error.message);
@@ -399,40 +380,40 @@ async function deleteRecluta(id) {
                 .select('*')
                 .eq('id', id)
                 .single();
-
+            
             if (fetchError) {
                 throw fetchError;
             }
-
+            
             // Eliminar el recluta de la base de datos
             const { error } = await supabase
                 .from('reclutas')
                 .delete()
                 .eq('id', id);
-
+            
             if (error) {
                 throw error;
             }
-
+            
             // Si el recluta tenía una foto personalizada (no la imagen por defecto), eliminarla del storage
             if (reclutaData.fotoUrl && !reclutaData.fotoUrl.includes('/api/placeholder')) {
                 // Extraer el path del archivo de la URL
                 const urlParts = reclutaData.fotoUrl.split('/');
                 const fileName = urlParts[urlParts.length - 1];
                 const filePath = `${currentGerente.id}/${fileName}`;
-
+                
                 const { error: storageError } = await supabase.storage
                     .from('reclutas')
                     .remove([filePath]);
-
+                
                 if (storageError) {
                     console.error('Error al eliminar la imagen del recluta:', storageError);
                 }
             }
-
+            
             // Recargar la lista de reclutas
             loadReclutas();
-
+            
         } catch (error) {
             console.error('Error al eliminar recluta:', error);
             alert('Error al eliminar recluta: ' + error.message);
@@ -454,11 +435,11 @@ function editRecluta(id) {
 async function logout() {
     try {
         const { error } = await supabase.auth.signOut();
-
+        
         if (error) {
             throw error;
         }
-
+        
         currentGerente = null;
         document.getElementById('login-section').style.display = 'block';
         document.getElementById('dashboard-section').style.display = 'none';
@@ -467,11 +448,11 @@ async function logout() {
         document.getElementById('login-profile-pic').src = '/api/placeholder/100/100';
         document.body.style.backgroundColor = "#e9f2f9";
         document.getElementById('page-color').value = "#e9f2f9";
-
+        
         // Deshabilitar el botón de selección de foto de perfil al cerrar sesión
         document.getElementById('profile-upload').disabled = true;
         document.querySelector('#login-section button[type="button"]').disabled = true;
-
+        
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
         alert('Error al cerrar sesión: ' + error.message);
@@ -484,7 +465,7 @@ function changeBackgroundColor(color) {
 }
 
 // Cerrar modal cuando se hace clic fuera de él
-window.onclick = function (event) {
+window.onclick = function(event) {
     const modal = document.getElementById('add-recluta-modal');
     if (event.target === modal) {
         closeAddReclutaModal();
