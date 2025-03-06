@@ -12,7 +12,7 @@ const supabase = {
                     user: { 
                         id: '12345', 
                         email: credentials.email,
-                        profileUrl: document.getElementById('login-profile-pic').src
+                        profileUrl: '/api/placeholder/100/100' // Ahora usamos una imagen predeterminada
                     }, 
                     error: null 
                 };
@@ -69,25 +69,62 @@ let currentGerente = null;
 let profileImage = null;
 let reclutaImage = null;
 
-// Deshabilitar el botón de selección de foto de perfil inicialmente
-document.getElementById('profile-upload').disabled = true;
-document.querySelector('#login-section button[type="button"]').disabled = true;
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejo de la foto de perfil en el dashboard (después del login)
+    const profileUploadInput = document.getElementById('profile-upload');
+    if (profileUploadInput) {
+        profileUploadInput.addEventListener('change', handleProfileImageChange);
+    }
 
-// Manejo de la foto de perfil en el login
-document.getElementById('profile-upload').addEventListener('change', function(event) {
+    // Manejo de la foto del recluta
+    const reclutaUploadInput = document.getElementById('recluta-upload');
+    if (reclutaUploadInput) {
+        reclutaUploadInput.addEventListener('change', handleReclutaImageChange);
+    }
+
+    // Configurar el botón de ajustes
+    const settingsButton = document.getElementById('settings-button');
+    if (settingsButton) {
+        settingsButton.addEventListener('click', toggleSettingsDropdown);
+    }
+
+    // Cerrar el menú desplegable cuando se hace clic fuera de él
+    window.addEventListener('click', closeDropdownOnClickOutside);
+
+    // Cerrar modal cuando se hace clic fuera de él
+    window.addEventListener('click', closeModalOnClickOutside);
+});
+
+// Manejo de imágenes
+function handleProfileImageChange(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('login-profile-pic').src = e.target.result;
+            document.getElementById('dashboard-profile-pic').src = e.target.result;
             profileImage = file;
+            
+            // Actualizar la imagen de perfil en el objeto currentGerente
+            if (currentGerente) {
+                currentGerente.profileUrl = e.target.result;
+                
+                // En una implementación real, aquí subirías la imagen al servidor
+                supabase.storage
+                    .from('profiles')
+                    .upload(`${currentGerente.id}/profile.jpg`, file)
+                    .then(({ data, error }) => {
+                        if (error) {
+                            console.error('Error al subir la imagen:', error);
+                        }
+                    });
+            }
         };
         reader.readAsDataURL(file);
     }
-});
+}
 
-// Manejo de la foto del recluta
-document.getElementById('recluta-upload').addEventListener('change', function(event) {
+function handleReclutaImageChange(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
@@ -105,9 +142,31 @@ document.getElementById('recluta-upload').addEventListener('change', function(ev
         };
         reader.readAsDataURL(file);
     }
-});
+}
 
-// Función de inicio de sesión
+// Funciones de UI
+function toggleSettingsDropdown(event) {
+    document.getElementById('settings-dropdown').classList.toggle('show');
+    event.stopPropagation();
+}
+
+function closeDropdownOnClickOutside(event) {
+    if (!event.target.matches('.settings-button') && !event.target.matches('.settings-button *')) {
+        const dropdown = document.getElementById('settings-dropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+    }
+}
+
+function closeModalOnClickOutside(event) {
+    const modal = document.getElementById('add-recluta-modal');
+    if (modal && event.target === modal) {
+        closeAddReclutaModal();
+    }
+}
+
+// Funciones de autenticación
 async function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -118,7 +177,7 @@ async function login() {
     }
     
     // Simular la carga
-    const loginButton = document.querySelector('#login-section button[type="submit"]');
+    const loginButton = document.querySelector('#login-section button');
     loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
     loginButton.disabled = true;
     
@@ -134,21 +193,6 @@ async function login() {
             loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
             loginButton.disabled = false;
         } else {
-            // Habilitar el botón de selección de foto de perfil después del inicio de sesión
-            document.getElementById('profile-upload').disabled = false;
-            document.querySelector('#login-section button[type="button"]').disabled = false;
-            
-            // Si hay un archivo de imagen, subir a storage
-            if (profileImage) {
-                const { data, error } = await supabase.storage
-                    .from('profiles')
-                    .upload(`${user.id}/profile.jpg`, profileImage);
-                    
-                if (!error) {
-                    user.profileUrl = document.getElementById('login-profile-pic').src;
-                }
-            }
-            
             currentGerente = user;
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('dashboard-section').style.display = 'block';
@@ -159,7 +203,19 @@ async function login() {
     }, 1000);
 }
 
-// Cargar reclutas del gerente actual
+async function logout() {
+    await supabase.auth.signOut();
+    currentGerente = null;
+    document.getElementById('login-section').style.display = 'block';
+    document.getElementById('dashboard-section').style.display = 'none';
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    document.body.style.backgroundColor = "#e9f2f9";
+    document.getElementById('page-color').value = "#e9f2f9";
+    profileImage = null;
+}
+
+// Funciones de gestión de reclutas
 async function loadReclutas() {
     const { data, error } = await supabase
         .from('reclutas')
@@ -195,7 +251,6 @@ async function loadReclutas() {
     }
 }
 
-// Funciones del modal
 function openAddReclutaModal() {
     document.getElementById('add-recluta-modal').style.display = 'block';
     // Limpiar formulario
@@ -210,13 +265,12 @@ function closeAddReclutaModal() {
     document.getElementById('add-recluta-modal').style.display = 'none';
 }
 
-// Agregar un nuevo recluta
 async function addRecluta() {
     const nombre = document.getElementById('recluta-nombre').value;
     const email = document.getElementById('recluta-email').value;
     const telefono = document.getElementById('recluta-telefono').value;
     
-    if (!nombre || !email || !telefono) {
+    if (!email || !nombre || !telefono) {
         alert("Por favor, completa todos los campos");
         return;
     }
@@ -266,7 +320,6 @@ async function addRecluta() {
     }, 1000);
 }
 
-// Eliminar un recluta
 async function deleteRecluta(id) {
     if (confirm('¿Estás seguro de eliminar este recluta?')) {
         const { error } = await supabase
@@ -282,37 +335,11 @@ async function deleteRecluta(id) {
     }
 }
 
-// Editar un recluta (implementación básica para demo)
 function editRecluta(id) {
     alert('Función de edición: En una implementación completa, aquí abrirías un modal con los datos del recluta ID: ' + id);
 }
 
-// Cerrar sesión
-async function logout() {
-    await supabase.auth.signOut();
-    currentGerente = null;
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('dashboard-section').style.display = 'none';
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('login-profile-pic').src = '/api/placeholder/100/100';
-    document.body.style.backgroundColor = "#e9f2f9";
-    document.getElementById('page-color').value = "#e9f2f9";
-    
-    // Deshabilitar el botón de selección de foto de perfil al cerrar sesión
-    document.getElementById('profile-upload').disabled = true;
-    document.querySelector('#login-section button[type="button"]').disabled = true;
-}
-
-// Cambiar color de fondo
+// Función para cambiar el color de fondo
 function changeBackgroundColor(color) {
     document.body.style.backgroundColor = color;
-}
-
-// Cerrar modal cuando se hace clic fuera de él
-window.onclick = function(event) {
-    const modal = document.getElementById('add-recluta-modal');
-    if (event.target === modal) {
-        closeAddReclutaModal();
-    }
 }
