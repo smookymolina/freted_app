@@ -45,6 +45,37 @@
         <p>&copy; 2025 Sistema de Gestión de Clientes. Todos los derechos reservados.</p>
     </footer>
 
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Configuración e inicialización de Firebase -->
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmb5AXaE1BL08jzagEiIxlmr9uIRJKrjk",
+            authDomain: "fretedapp.firebaseapp.com",
+            projectId: "fretedapp",
+            storageBucket: "fretedapp.firebasestorage.app",
+            messagingSenderId: "304850890905",
+            appId: "1:304850890905:web:c9fa644011da60b8dc0808",
+            measurementId: "G-KK5MW60EYD"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+        
+        // Make auth and firestore references
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <!-- Tu archivo JavaScript principal -->
     <script src="script.js"></script>
 </body>
 </html>
