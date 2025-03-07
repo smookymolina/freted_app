@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Clientes - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="/api/placeholder/100/50" alt="Logo de la Empresa" class="logo-small">
+                <h2>SGC</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="active">
+                        <a href="#"><i class="fas fa-home"></i> Inicio</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-users"></i> Clientes</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-chart-bar"></i> Reportes</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="header-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar cliente...">
+                </div>
+                <div class="user-info">
+                    <span id="user-name">Usuario Admin</span>
+                    <div class="user-avatar">
+                        <img src="/api/placeholder/40/40" alt="Avatar de usuario">
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="page-title">
+                    <h1>Gestión de Clientes</h1>
+                    <button class="btn-primary" id="add-client-btn">
+                        <i class="fas fa-plus"></i> Nuevo Cliente
+                    </button>
+                </div>
+
+                <div class="data-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h3>Total Clientes</h3>
+                            <p class="summary-count">0</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon green">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h3>Nuevos Clientes</h3>
+                            <p class="summary-count">0</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="summary-info">
+                            <h3>Pendientes</h3>
+                            <p class="summary-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-container">
+                    <div class="filter-container">
+                        <div class="filter-group">
+                            <label for="status-filter">Estado:</label>
+                            <select id="status-filter">
+                                <option value="all">Todos</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="date-filter">Fecha:</label>
+                            <select id="date-filter">
+                                <option value="all">Todos</option>
+                                <option value="today">Hoy</option>
+                                <option value="week">Esta semana</option>
+                                <option value="month">Este mes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="clients-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all"></th>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Fecha de registro</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table-body">
+                                <!-- Los datos de los clientes se cargarán dinámicamente desde JavaScript -->
+                                <tr>
+                                    <td colspan="8" class="no-data">No hay clientes registrados.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button class="pagination-btn" id="prev-page" disabled>
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </button>
+                        <div class="pagination-info">Página <span id="current-page">1</span> de <span id="total-pages">1</span></div>
+                        <button class="pagination-btn" id="next-page" disabled>
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para añadir/editar clientes -->
+    <div class="modal" id="client-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Nuevo Cliente</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="client-form">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="client-name">Nombre completo</label>
+                            <input type="text" id="client-name" name="name" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="client-email">Correo electrónico</label>
+                            <input type="email" id="client-email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="client-phone">Teléfono</label>
+                            <input type="tel" id="client-phone" name="phone" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="client-status">Estado</label>
+                            <select id="client-status" name="status" required>
+                                <option value="active">Activo</option>
+                                <option value="inactive">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="client-address">Dirección</label>
+                        <textarea id="client-address" name="address" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="client-notes">Notas adicionales</label>
+                        <textarea id="client-notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <input type="hidden" id="client-id" name="id">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-modal">Cancelar</button>
+                <button class="btn-primary" id="save-client">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar cliente -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Eliminar Cliente</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-modal">Cancelar</button>
+                <button class="btn-danger" id="confirm-delete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
