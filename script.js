@@ -1,4 +1,4 @@
-// script.js - Código JavaScript compartido para index.html y dashboard.html
+// script.js - Código JavaScript para index.html y dashboard.html con Firebase
 
 // Detectar en qué página estamos
 const isLoginPage = document.getElementById('loginForm') !== null;
@@ -31,6 +31,42 @@ function showError(message) {
     }
 }
 
+// Función para mostrar notificaciones
+function showNotification(type, title, message) {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    // Contenido de la notificación
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Agregar al DOM
+    document.body.appendChild(notification);
+    
+    // Agregar evento para cerrar la notificación
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        document.body.removeChild(notification);
+    });
+    
+    // Cerrar automáticamente después de 5 segundos
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 5000);
+}
+
 // Funciones específicas para la página de login
 if (isLoginPage) {
     const loginForm = document.getElementById('loginForm');
@@ -50,7 +86,7 @@ if (isLoginPage) {
         });
     }
     
-    // Manejar envío del formulario de login
+    // Manejar envío del formulario de login con Firebase
     if (loginForm) {
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault();
@@ -59,27 +95,62 @@ if (isLoginPage) {
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             
-            // Aquí se puede añadir la validación adicional
+            // Validación de campos
             if (!email || !password) {
                 showError('Por favor complete todos los campos.');
                 return;
             }
             
-            // Simulación de autenticación (para conectar con el backend)
-            // En un caso real, aquí se haría una petición al servidor
-            if (email === 'admin@example.com' && password === 'admin123') {
-                // Guardar información de sesión
-                if (rememberMe) {
-                    localStorage.setItem('userEmail', email);
-                } else {
-                    sessionStorage.setItem('userEmail', email);
-                }
-                
-                // Redireccionar al dashboard
-                window.location.href = 'dashboard.html';
-            } else {
-                showError('Correo electrónico o contraseña incorrectos.');
-            }
+            // Deshabilitar botón y mostrar estado de carga
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner"></span> Iniciando sesión...';
+            
+            // Iniciar sesión con Firebase
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Usuario autenticado
+                    const user = userCredential.user;
+                    
+                    // Guardar preferencia de "recordarme" si está activada
+                    if (rememberMe) {
+                        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                    } else {
+                        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
+                    }
+                    
+                    // Redireccionar al dashboard
+                    window.location.href = 'dashboard.html';
+                })
+                .catch((error) => {
+                    // Restaurar botón
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalButtonText;
+                    
+                    // Mostrar mensaje de error según el código
+                    let errorMessage = 'Error al iniciar sesión';
+                    
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            errorMessage = 'El correo electrónico no es válido';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage = 'Esta cuenta ha sido deshabilitada';
+                            break;
+                        case 'auth/user-not-found':
+                            errorMessage = 'No existe ningún usuario con este correo electrónico';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage = 'Contraseña incorrecta';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMessage = 'Demasiados intentos fallidos. Intente más tarde';
+                            break;
+                    }
+                    
+                    showError(errorMessage);
+                });
         });
     }
 }
@@ -104,44 +175,85 @@ if (isDashboardPage) {
     const pageSize = 10;
     let currentClientId = null;
     
-    // Mostrar nombre de usuario
-    const showUserInfo = () => {
-        const userEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
-        if (userEmail && userNameElement) {
-            userNameElement.textContent = userEmail.split('@')[0];
+    // Verificar autenticación
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            // Usuario autenticado
+            if (userNameElement) {
+                // Mostrar nombre del usuario o su correo
+                userNameElement.textContent = user.displayName || user.email.split('@')[0];
+            }
+            
+            // Cargar clientes desde Firestore
+            loadClients();
         } else {
-            // Si no hay sesión, redirigir al login
+            // No hay usuario autenticado, redirigir al login
             window.location.href = 'index.html';
         }
-    };
+    });
     
-    // Cerrar sesión
+    // Cerrar sesión con Firebase
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(event) {
             event.preventDefault();
             
-            // Limpiar sesión
-            localStorage.removeItem('userEmail');
-            sessionStorage.removeItem('userEmail');
-            localStorage.removeItem('clients');
+            // Mostrar estado de carga
+            this.innerHTML = '<span class="spinner"></span> Cerrando sesión...';
+            this.disabled = true;
             
-            // Redirigir al login
-            window.location.href = 'index.html';
+            firebase.auth().signOut()
+                .then(() => {
+                    // La redirección se maneja automáticamente con onAuthStateChanged
+                })
+                .catch((error) => {
+                    // Restaurar botón y mostrar error
+                    this.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar Sesión';
+                    this.disabled = false;
+                    showNotification('error', 'Error', 'No se pudo cerrar sesión');
+                    console.error('Error al cerrar sesión:', error);
+                });
         });
     }
     
-    // Cargar datos de clientes (simulado, normalmente sería una petición al servidor)
+    // Cargar datos de clientes desde Firestore
     const loadClients = () => {
-        const savedClients = localStorage.getItem('clients');
-        if (savedClients) {
-            clients = JSON.parse(savedClients);
+        // Mostrar estado de carga
+        const tableBody = document.getElementById('clients-table-body');
+        if (tableBody) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="loading-data">
+                        <span class="spinner"></span> Cargando clientes...
+                    </td>
+                </tr>`;
         }
-        updateClientsUI();
-    };
-    
-    // Guardar clientes en localStorage (simulación)
-    const saveClients = () => {
-        localStorage.setItem('clients', JSON.stringify(clients));
+        
+        // Consultar colección de clientes en Firestore
+        firebase.firestore().collection('clients')
+            .orderBy('registerDate', 'desc')
+            .get()
+            .then((querySnapshot) => {
+                clients = [];
+                querySnapshot.forEach((doc) => {
+                    clients.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                updateClientsUI();
+            })
+            .catch((error) => {
+                console.error('Error al cargar clientes:', error);
+                if (tableBody) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="error-data">
+                                <i class="fas fa-exclamation-circle"></i> Error al cargar los clientes
+                            </td>
+                        </tr>`;
+                }
+            });
     };
     
     // Actualizar contadores en el dashboard
@@ -243,7 +355,7 @@ if (isDashboardPage) {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="checkbox" data-id="${client.id}"></td>
-                <td>${client.id}</td>
+                <td>${client.id.substring(0, 8)}...</td>
                 <td>${client.name}</td>
                 <td>${client.email}</td>
                 <td>${client.phone}</td>
@@ -277,12 +389,6 @@ if (isDashboardPage) {
     const updateClientsUI = () => {
         updateSummary();
         renderClientsTable();
-    };
-    
-    // Generar ID único para nuevos clientes
-    const generateId = () => {
-        if (clients.length === 0) return 1;
-        return Math.max(...clients.map(client => client.id)) + 1;
     };
     
     // Abrir modal para añadir nuevo cliente
@@ -329,7 +435,7 @@ if (isDashboardPage) {
         currentClientId = null;
     };
     
-    // Guardar cliente (nuevo o editado)
+    // Guardar cliente (nuevo o editado) en Firestore
     const saveClient = () => {
         // Validar formulario
         if (!clientForm.checkValidity()) {
@@ -337,41 +443,81 @@ if (isDashboardPage) {
             return;
         }
         
+        // Mostrar estado de carga
+        const saveButton = document.getElementById('save-client');
+        const originalButtonText = saveButton.textContent;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner"></span> Guardando...';
+        
+        // Preparar datos del cliente
         const clientData = {
-            id: currentClientId || generateId(),
             name: document.getElementById('client-name').value,
             email: document.getElementById('client-email').value,
             phone: document.getElementById('client-phone').value,
             status: document.getElementById('client-status').value,
             address: document.getElementById('client-address').value,
-            notes: document.getElementById('client-notes').value,
-            registerDate: currentClientId ? clients.find(c => c.id === currentClientId).registerDate : new Date().toISOString()
+            notes: document.getElementById('client-notes').value
         };
+        
+        // Referencia a la colección de clientes
+        const clientsRef = firebase.firestore().collection('clients');
+        
+        let saveOperation;
         
         if (currentClientId) {
             // Actualizar cliente existente
-            const index = clients.findIndex(c => c.id === currentClientId);
-            if (index !== -1) {
-                clients[index] = clientData;
-            }
+            clientData.updatedAt = new Date().toISOString();
+            saveOperation = clientsRef.doc(currentClientId).update(clientData);
         } else {
             // Añadir nuevo cliente
-            clients.push(clientData);
+            clientData.registerDate = new Date().toISOString();
+            saveOperation = clientsRef.add(clientData);
         }
         
-        saveClients();
-        updateClientsUI();
-        closeModals();
+        saveOperation
+            .then(() => {
+                // Operación exitosa
+                showNotification('success', 'Éxito', currentClientId ? 'Cliente actualizado correctamente' : 'Cliente añadido correctamente');
+                closeModals();
+                loadClients(); // Recargar lista de clientes
+            })
+            .catch((error) => {
+                console.error('Error al guardar cliente:', error);
+                showNotification('error', 'Error', 'No se pudo guardar el cliente');
+            })
+            .finally(() => {
+                // Restaurar botón
+                saveButton.disabled = false;
+                saveButton.textContent = originalButtonText;
+            });
     };
     
-    // Eliminar cliente
+    // Eliminar cliente de Firestore
     const deleteClient = () => {
-        if (currentClientId) {
-            clients = clients.filter(c => c.id !== currentClientId);
-            saveClients();
-            updateClientsUI();
-            closeModals();
-        }
+        if (!currentClientId) return;
+        
+        // Mostrar estado de carga
+        const deleteButton = document.getElementById('confirm-delete');
+        const originalButtonText = deleteButton.textContent;
+        deleteButton.disabled = true;
+        deleteButton.innerHTML = '<span class="spinner"></span> Eliminando...';
+        
+        // Eliminar documento de Firestore
+        firebase.firestore().collection('clients').doc(currentClientId).delete()
+            .then(() => {
+                showNotification('success', 'Éxito', 'Cliente eliminado correctamente');
+                closeModals();
+                loadClients(); // Recargar lista de clientes
+            })
+            .catch((error) => {
+                console.error('Error al eliminar cliente:', error);
+                showNotification('error', 'Error', 'No se pudo eliminar el cliente');
+            })
+            .finally(() => {
+                // Restaurar botón
+                deleteButton.disabled = false;
+                deleteButton.textContent = originalButtonText;
+            });
     };
     
     // Cambiar página
@@ -436,28 +582,77 @@ if (isDashboardPage) {
         const searchInput = document.querySelector('.header-search input');
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
-            clients = JSON.parse(localStorage.getItem('clients') || '[]');
             
-            if (searchTerm) {
-                clients = clients.filter(client => 
-                    client.name.toLowerCase().includes(searchTerm) || 
-                    client.email.toLowerCase().includes(searchTerm) || 
-                    client.phone.includes(searchTerm)
-                );
+            if (searchTerm.length < 2) {
+                // Si el término de búsqueda es muy corto, mostrar todos los clientes
+                loadClients();
+                return;
             }
             
+            // Filtrar clientes en memoria (para búsquedas rápidas)
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) || 
+                client.email.toLowerCase().includes(searchTerm) || 
+                client.phone.includes(searchTerm)
+            );
+            
+            // Actualizar solo la tabla manteniendo los clientes originales en memoria
+            const tableBody = document.getElementById('clients-table-body');
+            if (!tableBody) return;
+            
+            if (filteredClients.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="no-data">No se encontraron clientes que coincidan con la búsqueda.</td></tr>`;
+                return;
+            }
+            
+            // Actualizar solo la tabla con resultados filtrados
+            tableBody.innerHTML = '';
             currentPage = 1;
-            updateClientsUI();
+            
+            // Mostrar resultados paginados
+            const paginatedClients = filteredClients.slice(0, pageSize);
+            
+            paginatedClients.forEach(client => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" data-id="${client.id}"></td>
+                    <td>${client.id.substring(0, 8)}...</td>
+                    <td>${client.name}</td>
+                    <td>${client.email}</td>
+                    <td>${client.phone}</td>
+                    <td>${new Date(client.registerDate).toLocaleDateString()}</td>
+                    <td>
+                        <span class="status-badge ${client.status === 'active' ? 'status-active' : 'status-inactive'}">
+                            ${client.status === 'active' ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${client.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${client.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                
+                // Agregar eventos a los botones de acciones
+                const editBtn = row.querySelector('.edit-btn');
+                const deleteBtn = row.querySelector('.delete-btn');
+                
+                editBtn.addEventListener('click', () => openEditModal(client.id));
+                deleteBtn.addEventListener('click', () => openDeleteModal(client.id));
+            });
+            
+            // Actualizar paginación
+            document.getElementById('current-page').textContent = 1;
+            document.getElementById('total-pages').textContent = Math.ceil(filteredClients.length / pageSize) || 1;
+            document.getElementById('prev-page').disabled = true;
+            document.getElementById('next-page').disabled = filteredClients.length <= pageSize;
         });
     };
     
-    // Inicializar dashboard
-    const initDashboard = () => {
-        showUserInfo();
-        loadClients();
-        initEvents();
-    };
-    
-    // Ejecutar inicialización al cargar
-    initDashboard();
+    // Inicializar eventos (no es necesario llamar a loadClients aquí, se maneja en onAuthStateChanged)
+    initEvents();
 }
