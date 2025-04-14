@@ -10,5 +10,5 @@ module.exports = {
   emailFrom: process.env.EMAIL_FROM || 'noreply@sistemagestionreclutas.com',
   
   // Servidor
-  baseUrl: process.env.BASE_URL || 'http://localhost:5000'
+  baseUrl: process.env.BASE_URL || 'http://localhost:5500'
 };
