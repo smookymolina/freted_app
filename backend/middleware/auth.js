@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const ErrorResponse = require('../utils/errorResponse');
-const User = require('../models/user');
+const User = require('../models/User');
 const config = require('../config/config');
 
 // Proteger rutas
