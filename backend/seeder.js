@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './.env' });
 
 // Cargar modelos
-const User = require('./models/user');
+const User = require('./models/User');
 const Recluta = require('./models/Recluta');
 const Entrevista = require('./models/Entrevista');
 
