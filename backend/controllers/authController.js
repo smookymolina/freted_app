@@ -33,26 +33,41 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validar email y password
+    // 1. Validar campos
     if (!email || !password) {
-      return next(new ErrorResponse('Por favor proporciona un email y contraseña', 400));
+      return next(new ErrorResponse('Email y contraseña son requeridos', 400));
     }
 
-    // Verificar usuario
-    const user = await User.findOne({ email }).select('+password');
+    // 2. Buscar usuario (case-insensitive)
+    const user = await User.findOne({ 
+      email: { $regex: new RegExp(`^${email}$`, 'i') }
+    }).select('+password');
 
     if (!user) {
       return next(new ErrorResponse('Credenciales inválidas', 401));
     }
 
-    // Verificar contraseña
+    // 3. Verificar contraseña
     const isMatch = await user.matchPassword(password);
-
     if (!isMatch) {
       return next(new ErrorResponse('Credenciales inválidas', 401));
     }
 
-    sendTokenResponse(user, 200, res);
+    // 4. Generar token (¡con fecha de expiración!)
+    const token = user.getSignedJwtToken();
+
+    // 5. Enviar respuesta
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        role: user.role
+      }
+    });
+
   } catch (err) {
     next(err);
   }

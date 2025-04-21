@@ -7,31 +7,30 @@ const config = require('../config/config');
 exports.protect = async (req, res, next) => {
   let token;
 
-  // Verificar si hay token en los headers
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    // Obtener token del header
+  // 1. Obtener token de headers/cookies
+  if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies?.token) {
+    token = req.cookies.token;
   }
 
-  // Verificar si token existe
   if (!token) {
-    return next(new ErrorResponse('No autorizado para acceder a esta ruta', 401));
+    return next(new ErrorResponse('Acceso no autorizado', 401));
   }
 
   try {
-    // Verificar token
-    const decoded = jwt.verify(token, config.jwtSecret);
-
-    // Obtener usuario
+    // 2. Verificar token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // 3. Obtener usuario
     req.user = await User.findById(decoded.id);
-    
-    if (!req.user) {
-      return next(new ErrorResponse('Usuario no encontrado', 401));
-    }
-    
     next();
   } catch (err) {
-    return next(new ErrorResponse('No autorizado para acceder a esta ruta', 401));
+    // Manejar errores específicos
+    if (err.name === 'TokenExpiredError') {
+      return next(new ErrorResponse('Token expirado', 401));
+    }
+    return next(new ErrorResponse('Token inválido', 401));
   }
 };
 

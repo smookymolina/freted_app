@@ -1,43 +1,75 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
 
-// Cargar variables de entorno
-dotenv.config({ path: './.env' });
+// Cargar variables de entorno - configuración robusta
+const envPath = path.resolve(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  console.warn('⚠️  Archivo .env no encontrado. Usando variables de entorno del sistema.');
+}
+
+// Verificación crítica de la URI de MongoDB
+const DB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!DB_URI) {
+  console.error('❌ ERROR: No se encontró la URI de MongoDB en las variables de entorno');
+  console.error('Asegúrate de tener en tu .env:');
+  console.error('MONGO_URI=mongodb://localhost:27017/nombre_db');
+  process.exit(1);
+}
 
 // Cargar modelos
 const User = require('./models/User');
 const Recluta = require('./models/Recluta');
 const Entrevista = require('./models/Entrevista');
 
-// Conectar a DB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+// Configuración mejorada de conexión a MongoDB
+const connectDB = async () => {
+  try {
+    console.log('🔌 Conectando a MongoDB...');
+    await mongoose.connect(DB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
+    });
+    console.log('✅ MongoDB conectado correctamente');
+  } catch (err) {
+    console.error('❌ Error de conexión a MongoDB:', err.message);
+    console.error('Verifica que:');
+    console.error('1. MongoDB esté corriendo (ejecuta "mongod" o inicia el servicio)');
+    console.error('2. La URI sea correcta:', DB_URI);
+    process.exit(1);
+  }
+};
 
-// Datos de muestra
+// Datos de muestra mejorados
 const users = [
   {
     nombre: 'Admin Usuario',
     email: 'admin@example.com',
     password: 'password123',
     telefono: '555-1111',
-    role: 'admin'
+    role: 'admin',
+    createdAt: new Date()
   },
   {
     nombre: 'María García',
     email: 'maria@example.com',
     password: 'password123',
     telefono: '555-2222',
-    role: 'reclutador'
+    role: 'reclutador',
+    createdAt: new Date()
   },
   {
     nombre: 'Juan Pérez',
     email: 'juan@example.com',
     password: 'password123',
     telefono: '555-3333',
-    role: 'reclutador'
+    role: 'reclutador',
+    createdAt: new Date()
   }
 ];
 
@@ -48,7 +80,9 @@ const reclutas = [
     telefono: '555-1234',
     estado: 'Activo',
     puesto: 'Desarrollador Frontend',
-    notas: 'Experiencia de 3 años en React y Angular. Disponible para incorporación inmediata.'
+    notas: 'Experiencia en React',
+    skills: ['JavaScript', 'React', 'CSS'],
+    createdAt: new Date()
   },
   {
     nombre: 'Carlos López',
@@ -56,103 +90,93 @@ const reclutas = [
     telefono: '555-5678',
     estado: 'En proceso',
     puesto: 'Diseñador UX/UI',
-    notas: 'Portfolio impresionante. Pendiente segunda entrevista con el equipo de diseño.'
-  },
-  {
-    nombre: 'María Rodríguez',
-    email: 'maria.rodriguez@ejemplo.com',
-    telefono: '555-9012',
-    estado: 'Activo',
-    puesto: 'Desarrollador Backend',
-    notas: 'Experiencia con Node.js y bases de datos SQL/NoSQL. Disponible a partir del 15 de mayo.'
-  },
-  {
-    nombre: 'Javier Martínez',
-    email: 'javier.martinez@ejemplo.com',
-    telefono: '555-3456',
-    estado: 'En proceso',
-    puesto: 'DevOps Engineer',
-    notas: 'Conocimientos avanzados en AWS y Docker. Pendiente prueba técnica.'
+    notas: 'Portfolio destacado',
+    skills: ['Figma', 'UI Design', 'Prototyping'],
+    createdAt: new Date()
   }
 ];
 
-// Importar datos
+// Función mejorada para importar datos
 const importData = async () => {
   try {
+    await connectDB(); // Conexión antes de operaciones
+
+    // Limpiar datos existentes primero
+    await Promise.all([
+      Entrevista.deleteMany(),
+      Recluta.deleteMany(),
+      User.deleteMany()
+    ]);
+
     // Crear usuarios
-    const createdUsers = await User.create(users);
-    console.log(`${createdUsers.length} usuarios importados`);
+    const createdUsers = await User.insertMany(users);
+    console.log(`📝 ${createdUsers.length} usuarios creados`);
 
-    // Asignar reclutas a usuarios reclutadores
-    const reclutadoresIds = createdUsers
-      .filter(user => user.role === 'reclutador')
-      .map(user => user._id);
-
-    const reclutasWithUser = reclutas.map((recluta, index) => ({
+    // Asignar reclutas a reclutadores
+    const reclutadores = createdUsers.filter(u => u.role === 'reclutador');
+    const reclutasConUsuario = reclutas.map((recluta, i) => ({
       ...recluta,
-      user: reclutadoresIds[index % reclutadoresIds.length]
+      user: reclutadores[i % reclutadores.length]._id
     }));
 
-    // Crear reclutas
-    const createdReclutas = await Recluta.create(reclutasWithUser);
-    console.log(`${createdReclutas.length} reclutas importados`);
+    const createdReclutas = await Recluta.insertMany(reclutasConUsuario);
+    console.log(`📋 ${createdReclutas.length} reclutas creados`);
 
-    // Crear algunas entrevistas
+    // Crear entrevistas
     const entrevistas = [
       {
-        fecha: new Date(Date.now() + 24 * 60 * 60 * 1000), // mañana
+        fecha: new Date(Date.now() + 86400000), // Mañana
         hora: '10:00',
-        duracion: 60,
-        tipo: 'presencial',
-        ubicacion: 'Oficina central',
-        notas: 'Preparar preguntas técnicas',
         recluta: createdReclutas[0]._id,
-        user: reclutadoresIds[0]
-      },
-      {
-        fecha: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // en 3 días
-        hora: '14:30',
-        duracion: 90,
-        tipo: 'virtual',
-        ubicacion: 'Zoom',
-        notas: 'Revisar portfolio',
-        recluta: createdReclutas[1]._id,
-        user: reclutadoresIds[0]
+        user: reclutadores[0]._id,
+        notas: 'Entrevista técnica'
       }
     ];
 
-    await Entrevista.create(entrevistas);
-    console.log(`${entrevistas.length} entrevistas importadas`);
-
-    console.log('Datos importados correctamente');
-    process.exit();
+    await Entrevista.insertMany(entrevistas);
+    console.log('✅ Datos importados exitosamente');
+    
+    process.exit(0);
   } catch (err) {
-    console.error(err);
+    console.error('❌ Error durante la importación:', err);
     process.exit(1);
   }
 };
 
-// Eliminar datos
+// Función para eliminar datos
 const deleteData = async () => {
   try {
-    await Entrevista.deleteMany();
-    await Recluta.deleteMany();
-    await User.deleteMany();
-
-    console.log('Datos eliminados correctamente');
-    process.exit();
+    await connectDB();
+    
+    const results = await Promise.all([
+      Entrevista.deleteMany(),
+      Recluta.deleteMany(),
+      User.deleteMany()
+    ]);
+    
+    const totalDeleted = results.reduce((sum, r) => sum + r.deletedCount, 0);
+    console.log(`🧹 ${totalDeleted} documentos eliminados`);
+    
+    process.exit(0);
   } catch (err) {
-    console.error(err);
+    console.error('❌ Error al eliminar datos:', err);
     process.exit(1);
   }
 };
 
-// Procesar comando
-if (process.argv[2] === '-i') {
+// Manejo de argumentos mejorado
+const args = process.argv.slice(2);
+if (args.includes('-i') || args.includes('--import')) {
   importData();
-} else if (process.argv[2] === '-d') {
+} else if (args.includes('-d') || args.includes('--delete')) {
   deleteData();
 } else {
-  console.log('Por favor usa -i (importar) o -d (eliminar)');
-  process.exit();
+  console.log(`
+Uso: node seeder.js [opción]
+
+Opciones:
+  -i, --import    Importar datos de prueba
+  -d, --delete    Eliminar todos los datos
+  `);
+  process.exit(1);
 }

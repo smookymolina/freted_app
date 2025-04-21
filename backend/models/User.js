@@ -58,14 +58,21 @@ UserSchema.pre('save', async function(next) {
 
 // Generar JWT
 UserSchema.methods.getSignedJwtToken = function() {
-  return jwt.sign({ id: this._id }, config.jwtSecret, {
-    expiresIn: config.jwtExpire
-  });
+  return jwt.sign(
+    { id: this._id },
+    process.env.JWT_SECRET,  // ¡Usa la variable de entorno!
+    { expiresIn: process.env.JWT_EXPIRE }  // Ej: '1h'
+  );
 };
 
 // Comparar contraseña ingresada con la almacenada
 UserSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  try {
+    return await bcrypt.compare(enteredPassword, this.password);
+  } catch (err) {
+    console.error('Error comparando contraseñas:', err);
+    throw new Error('Error al verificar contraseña');
+  }
 };
 
 module.exports = mongoose.model('User', UserSchema);
